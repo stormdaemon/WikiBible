@@ -20,7 +20,11 @@
       "Bash(xargs sed:*)",
       "Bash(bun add:*)",
       "Bash(curl:*)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "WebSearch",
+      "Bash(test:*)",
+      "Bash(cat:*)",
+      "Bash(split:*)"
     ],
     "deny": [],
     "ask": []

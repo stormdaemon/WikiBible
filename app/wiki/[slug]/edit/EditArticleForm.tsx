@@ -1,7 +1,7 @@
 'use client';
 
 import { updateArticleAction } from '@/app/actions';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import type { Tables } from '@/lib/database.types';
 
@@ -10,7 +10,7 @@ interface EditArticleFormProps {
 }
 
 export default function EditArticleForm({ article }: EditArticleFormProps) {
-  const [state, formAction] = useFormState(updateArticleAction, null as Awaited<ReturnType<typeof updateArticleAction>> | null);
+  const [state, formAction] = useActionState(updateArticleAction, null as Awaited<ReturnType<typeof updateArticleAction>> | null);
 
   return (
     <div className="card">

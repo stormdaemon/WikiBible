@@ -1,11 +1,11 @@
 'use client';
 
 import { loginAction } from '@/app/actions';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [state, formAction] = useFormState(loginAction, null as Awaited<ReturnType<typeof loginAction>> | null);
+  const [state, formAction] = useActionState(loginAction, null as Awaited<ReturnType<typeof loginAction>> | null);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">

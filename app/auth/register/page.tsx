@@ -1,11 +1,11 @@
 'use client';
 
 import { registerAction } from '@/app/actions';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import Link from 'next/link';
 
 export default function RegisterPage() {
-  const [state, formAction] = useFormState(registerAction, null as Awaited<ReturnType<typeof registerAction>> | null);
+  const [state, formAction] = useActionState(registerAction, null as Awaited<ReturnType<typeof registerAction>> | null);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">

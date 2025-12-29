@@ -4,10 +4,10 @@ import Link from 'next/link';
 export default async function ChapterPage({
   params,
 }: {
-  params: { bookId: string; chapter: string };
+  params: Promise<{ bookId: string; chapter: string }>;
 }) {
-  const bookId = params.bookId;
-  const chapter = parseInt(params.chapter);
+  const { bookId, chapter: chapterStr } = await params;
+  const chapter = parseInt(chapterStr);
 
   const [bookResult, chapterResult] = await Promise.all([
     getBookAction(bookId),
@@ -29,7 +29,7 @@ export default async function ChapterPage({
           <Link href="/" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary text-white flex items-center justify-center rounded-md">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2v20M2 12h20"/>
+                <path d="M12 2v20M2 12h20" />
               </svg>
             </div>
             <span className="font-bold text-lg tracking-tight">WikiBible</span>
@@ -94,7 +94,7 @@ export default async function ChapterPage({
                 <div className="verse-card__actions">
                   <button className="text-secondary hover:text-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 7v9l5-5-5-5z"/>
+                      <path d="M8 7v9l5-5-5-5z" />
                     </svg>
                   </button>
                 </div>
@@ -117,11 +117,10 @@ export default async function ChapterPage({
               <Link
                 key={ch}
                 href={`/bible/${bookId}/${ch}`}
-                className={`px-3 py-2 rounded text-sm ${
-                  ch === chapter
+                className={`px-3 py-2 rounded text-sm ${ch === chapter
                     ? 'bg-accent text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 {ch}
               </Link>

@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
@@ -53,6 +53,7 @@ export async function loginAction(state: ActionResult | null, formData: FormData
 
   const { email, password } = validatedFields.data;
 
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -78,6 +79,7 @@ export async function registerAction(state: ActionResult | null, formData: FormD
 
   const { email, password, name } = validatedFields.data;
 
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -94,6 +96,7 @@ export async function registerAction(state: ActionResult | null, formData: FormD
 }
 
 export async function logoutAction() {
+  const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
   if (error) {
     return { error: error.message };
@@ -104,7 +107,7 @@ export async function logoutAction() {
 
 // === WIKI ACTIONS ===
 
-export async function createArticleAction(state: ActionResult<{slug: string}> | null, formData: FormData): Promise<ActionResult<{slug: string}>> {
+export async function createArticleAction(state: ActionResult<{ slug: string }> | null, formData: FormData): Promise<ActionResult<{ slug: string }>> {
   const validatedFields = CreateArticleSchema.safeParse({
     title: formData.get('title'),
     content: formData.get('content'),
@@ -115,6 +118,7 @@ export async function createArticleAction(state: ActionResult<{slug: string}> | 
     return { error: 'Invalid fields' };
   }
 
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -187,6 +191,7 @@ export async function updateArticleAction(state: ActionResult | null, formData: 
     return { error: 'Invalid fields' };
   }
 
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -229,6 +234,8 @@ export async function updateArticleAction(state: ActionResult | null, formData: 
 // === BIBLE ACTIONS ===
 
 export async function getBooksAction() {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('bible_books')
     .select('*')
@@ -241,11 +248,13 @@ export async function getBooksAction() {
   return { success: true, books: data };
 }
 
-export async function getBookAction(bookId: string) {
+export async function getBookAction(bookSlug: string) {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('bible_books')
     .select('*')
-    .eq('id', bookId)
+    .eq('slug', bookSlug)
     .single();
 
   if (error) {
@@ -255,11 +264,26 @@ export async function getBookAction(bookId: string) {
   return { success: true, book: data };
 }
 
-export async function getChapterAction(bookId: string, chapter: number) {
+export async function getChapterAction(bookSlug: string, chapter: number) {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  // D'abord récupérer l'id du livre à partir du slug
+  const { data: book, error: bookError } = await supabase
+    .from('bible_books')
+    .select('id')
+    .eq('slug', bookSlug)
+    .single();
+
+  if (bookError || !book) {
+    return { error: bookError?.message || 'Livre non trouvé' };
+  }
+
+  // Ensuite récupérer les versets
   const { data, error } = await supabase
     .from('bible_verses')
     .select('*')
-    .eq('book_id', bookId)
+    .eq('book_id', book.id)
     .eq('chapter', chapter)
     .order('verse');
 
@@ -271,6 +295,7 @@ export async function getChapterAction(bookId: string, chapter: number) {
 }
 
 export async function searchBibleAction(query: string) {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('bible_verses')
     .select(`
@@ -287,6 +312,7 @@ export async function searchBibleAction(query: string) {
 }
 
 export async function getArticleAction(slug: string) {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('wiki_articles')
     .select(`
@@ -305,6 +331,7 @@ export async function getArticleAction(slug: string) {
 }
 
 export async function getRecentArticlesAction(limit = 10) {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('wiki_articles')
     .select('*')

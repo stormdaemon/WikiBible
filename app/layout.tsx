@@ -21,14 +21,23 @@ export const metadata: Metadata = {
   description: "Encyclopédie biblique catholique complète avec le canon de 73 livres",
 };
 
-export default function RootLayout({
+import Header from '@/components/Header';
+import { createPublicClient } from '@/utils/supabase/server';
+
+// ... (rest of imports)
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = createPublicClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="fr" className={`${inter.variable} ${libreBaskerville.variable}`}>
-      <body className="antialiased">
+      <body className="antialiased min-h-screen flex flex-col">
+        <Header user={user} />
         {children}
       </body>
     </html>

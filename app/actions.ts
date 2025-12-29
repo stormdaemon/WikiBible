@@ -312,7 +312,8 @@ export async function searchBibleAction(query: string) {
 }
 
 export async function getArticleAction(slug: string) {
-  const supabase = await createClient();
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('wiki_articles')
     .select(`
@@ -331,7 +332,8 @@ export async function getArticleAction(slug: string) {
 }
 
 export async function getRecentArticlesAction(limit = 10) {
-  const supabase = await createClient();
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('wiki_articles')
     .select('*')

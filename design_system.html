@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Catholic - Design System V4 (Final)</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style type="text/css">
+        @import "tailwindcss";
+
+        @theme {
+            /* --- COULEURS (SYSTEME HSL) --- */
+            --color-primary: #1e293b;       /* Slate 900 - Texte principal */
+            --color-secondary: #64748b;     /* Slate 500 - Texte secondaire */
+            --color-accent: #b45309;        /* Amber 700 - Or Sacré (subtil/lisible) */
+            --color-accent-soft: #fef3c7;   /* Amber 100 - Backgrounds accent */
+            --color-danger: #991b1b;        /* Red 800 - Erreurs / Liturgique */
+            --color-surface: #ffffff;       /* Fond cartes */
+            --color-background: #f8fafc;    /* Slate 50 - Fond page */
+            --color-border: #e2e8f0;        /* Slate 200 - Bordures */
+
+            /* --- TYPOGRAPHIE --- */
+            --font-sans: "Inter", system-ui, sans-serif;
+            --font-serif: "Libre Baskerville", serif;
+
+            /* --- RAYONS --- */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+
+            /* --- OMBRES --- */
+            --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-floating: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            background-color: var(--color-background);
+            color: var(--color-primary);
+            font-family: var(--font-sans);
+        }
+
+        /* Utility classes custom */
+        .serif-title { font-family: var(--font-serif); letter-spacing: -0.02em; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <header class="bg-surface border-b border-border sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary text-white flex items-center justify-center rounded-md">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M2 12h20"/>
+                    </svg>
+                </div>
+                <span class="font-bold text-lg tracking-tight">WikiCatholic <span class="text-secondary font-normal text-sm">Design System</span></span>
+            </div>
+            <div class="text-xs font-mono bg-accent-soft text-accent px-2 py-1 rounded">Tailwind V4.0 Ready</div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-12 gap-12">
+
+        <aside class="col-span-2 hidden md:block">
+            <nav class="sticky top-24 space-y-1">
+                <a href="#colors" class="block px-3 py-2 text-sm font-medium text-accent bg-accent-soft rounded-md">01. Colors & Type</a>
+                <a href="#buttons" class="block px-3 py-2 text-sm font-medium text-secondary hover:text-primary">02. Buttons & Actions</a>
+                <a href="#forms" class="block px-3 py-2 text-sm font-medium text-secondary hover:text-primary">03. Forms & Inputs</a>
+                <a href="#navigation" class="block px-3 py-2 text-sm font-medium text-secondary hover:text-primary">04. Navigation</a>
+                <a href="#components" class="block px-3 py-2 text-sm font-medium text-secondary hover:text-primary">05. Components (Cards)</a>
+                <a href="#icons" class="block px-3 py-2 text-sm font-medium text-secondary hover:text-primary">06. Iconography</a>
+            </nav>
+        </aside>
+
+        <div class="col-span-12 md:col-span-10 space-y-16">
+
+            <section id="colors" class="space-y-6">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">01. Colors & Typography</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="space-y-2">
+                        <div class="h-20 rounded-md bg-primary shadow-card"></div>
+                        <div class="text-xs font-mono">var(--color-primary)</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="h-20 rounded-md bg-accent shadow-card"></div>
+                        <div class="text-xs font-mono">var(--color-accent)</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="h-20 rounded-md bg-danger shadow-card"></div>
+                        <div class="text-xs font-mono">var(--color-danger)</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="h-20 rounded-md bg-surface border border-border shadow-card"></div>
+                        <div class="text-xs font-mono">var(--color-surface)</div>
+                    </div>
+                </div>
+
+                <div class="bg-surface p-8 border border-border rounded-lg space-y-6">
+                    <div>
+                        <h1 class="text-4xl font-serif text-primary mb-2">H1. Heading Serif</h1>
+                        <p class="text-secondary">Utilisé pour les titres d'articles majeurs et les livres bibliques.</p>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-primary mb-2">H2. Heading Sans</h2>
+                        <p class="text-secondary">Utilisé pour les sections d'interface et les sous-titres.</p>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p class="leading-relaxed">Body text (Inter). <span class="font-serif italic text-primary">"Ceci est une citation biblique en Serif Italic pour la distinction."</span> Le reste du texte est optimisé pour la lecture sur écran avec un contraste élevé mais pas agressif.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="buttons" class="space-y-6">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">02. Buttons</h2>
+                <div class="flex flex-wrap gap-4 items-center bg-surface p-8 border border-border rounded-lg">
+                    <button class="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Primary Action
+                    </button>
+                    <button class="bg-white hover:bg-slate-50 text-primary border border-border px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">
+                        Secondary
+                    </button>
+                    <button class="bg-accent hover:bg-amber-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        Bible Link
+                    </button>
+                    <button class="text-secondary hover:text-primary px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-100">
+                        Ghost / Cancel
+                    </button>
+                    <button class="text-danger hover:bg-red-50 border border-transparent hover:border-red-100 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        Delete
+                    </button>
+                    <button class="p-2 text-secondary hover:text-primary hover:bg-slate-100 rounded-md">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <section id="forms" class="space-y-6">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">03. Forms & Inputs</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-surface p-8 border border-border rounded-lg">
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-primary">Titre de l'article</label>
+                        <input type="text" placeholder="Ex: Saint Pierre" class="w-full px-3 py-2 bg-white border border-border rounded-md text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder:text-slate-400">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-primary">Livre Biblique</label>
+                        <select class="w-full px-3 py-2 bg-white border border-border rounded-md text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                            <option>Genèse</option>
+                            <option>Exode</option>
+                            <option>Tobie (Deutérocanonique)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2 col-span-2">
+                        <label class="block text-sm font-medium text-primary">Contenu (Markdown)</label>
+                        <textarea rows="4" class="w-full px-3 py-2 bg-white border border-border rounded-md text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-mono text-slate-600" placeholder="# Introduction..."></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-accent border-border rounded focus:ring-accent">
+                            <span class="text-sm text-primary">Publier immédiatement</span>
+                        </label>
+                        
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" class="absolute block w-6 h-6 rounded-full bg-white border-4 border-border appearance-none cursor-pointer checked:right-0 checked:border-accent"/>
+                                <span class="block overflow-hidden h-6 rounded-full bg-slate-200 cursor-pointer"></span>
+                            </div>
+                            <span class="text-sm text-primary">Mode Expert</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section id="navigation" class="space-y-6">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">04. Navigation Components</h2>
+                
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
+                        <li class="inline-flex items-center text-secondary hover:text-primary">Wiki</li>
+                        <li><span class="text-slate-300">/</span></li>
+                        <li class="inline-flex items-center text-secondary hover:text-primary">Nouveau Testament</li>
+                        <li><span class="text-slate-300">/</span></li>
+                        <li class="font-medium text-accent">Évangile selon Saint Jean</li>
+                    </ol>
+                </nav>
+
+                <div class="border-b border-border">
+                    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 text-accent border-b-2 border-accent active">Lecture</a>
+                        </li>
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 text-secondary border-b-2 border-transparent hover:text-primary hover:border-slate-300">Exégèse</a>
+                        </li>
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 text-secondary border-b-2 border-transparent hover:text-primary hover:border-slate-300">Historique</a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="components" class="space-y-8">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">05. Main Components</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div class="bg-surface rounded-lg border border-border p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-accent"></div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-bold text-accent uppercase tracking-wider">Jean 1:1</span>
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="text-secondary hover:text-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7v9l5-5-5-5z"/></svg></button>
+                                <button class="text-secondary hover:text-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+                            </div>
+                        </div>
+                        <p class="font-serif text-xl leading-relaxed text-primary mb-4">
+                            "Au commencement était le Verbe, et le Verbe était avec Dieu, et le Verbe était Dieu."
+                        </p>
+                        <div class="flex items-center gap-2 text-xs text-secondary">
+                            <span class="bg-slate-100 px-2 py-1 rounded">Bible Crampon</span>
+                            <span>•</span>
+                            <span>Contexte théologique disponible</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-surface rounded-lg border border-border p-0 shadow-sm overflow-hidden flex flex-col">
+                        <div class="h-32 bg-slate-100 flex items-center justify-center text-slate-300">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="font-serif text-lg font-bold text-primary mb-2">Concile de Trente</h3>
+                            <p class="text-sm text-secondary line-clamp-3 mb-4 flex-1">
+                                Le concile de Trente est le XIXᵉ concile œcuménique reconnu par l'Église catholique. Convoqué par le pape Paul III en 1542, en réponse aux demandes formulées par Martin Luther...
+                            </p>
+                            <div class="flex justify-between items-center border-t border-border pt-4">
+                                <span class="text-xs text-slate-400">Modifié il y a 2h</span>
+                                <a href="#" class="text-sm font-medium text-accent hover:underline">Lire l'article →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-accent-soft border border-accent/20 text-amber-900 px-4 py-3 rounded-md flex items-start gap-3" role="alert">
+                    <svg class="w-5 h-5 text-accent mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div>
+                        <strong class="font-bold text-sm block">Note Canonique</strong>
+                        <span class="text-sm">Ce livre est deutérocanonique. Il est reconnu par l'Église Catholique mais absent des bibles protestantes.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="icons" class="space-y-6">
+                <h2 class="text-2xl font-bold border-b border-border pb-2">06. Iconography (Lucide Style)</h2>
+                <div class="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-4">
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M7 8h10"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 bg-surface border border-border rounded hover:border-accent transition-colors">
+                        <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

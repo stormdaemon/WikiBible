@@ -1,0 +1,62 @@
+<project_instruction>
+    <metadata>
+        <name>WikiBible</name>
+        <version>MVP 1.0 (Vibe Coding Optimized)</version>
+        <date>2025-12-29</date>
+        <stack>
+            <framework>Next.js 16.1 (App Router)</framework>
+            <ui_library>React 19.2</ui_library>
+            <styling>Tailwind CSS v4.0 (@theme based)</styling>
+            <backend>Supabase (PostgreSQL + Auth)</backend>
+            <mcp_usage>Context 7 MCP Workflow</mcp_usage>
+        </stack>
+    </metadata>
+
+    <design_system_context>
+        <source>design_system.html</source>
+        <instruction>
+            Ce fichier est ta SEULE source de vérité visuelle. 
+            - Extraction stricte des variables @theme.
+            - Copie conforme des classes HTML pour les composants UI (Buttons, Cards, Inputs).
+            - Utilisation du duo 'Inter' / 'Libre Baskerville'.
+        </instruction>
+    </design_system_context>
+
+    <bible_catholic_protocol>
+        <canon>73 Livres (Ancien Testament: 46 / Nouveau Testament: 27).</canon>
+        <mandatory_books>Tobie, Judith, 1&amp;2 Macchabées, Sagesse, Siracide, Baruch.</mandatory_books>
+        <process>
+            1. Script d'import `scripts/import-bible.ts` via Bible Crampon 1923 (JSON).
+            2. Migration SQL via MCP Supabase pour les tables `bible_books` et `bible_verses`.
+        </process>
+    </bible_catholic_protocol>
+
+    <vibe_coding_workflow_mcp>
+        <rule>Pour chaque micro-tâche, appliquer le workflow 'Context 7 MCP' :</rule>
+        <steps>
+            1. READ: Analyser CLAUDE.md et design-system-final.html.
+            2. MCP CHECK: Utiliser le MCP Supabase pour lire le schéma actuel (si tâche DB).
+            3. PLAN: Décrire l'approche en 2 phrases.
+            4. TYPES: Générer/Mettre à jour les interfaces TS.
+            5. CODE: Implémenter (React 19 / Server Actions).
+            6. UI VALIDATE: Comparer le rendu avec les classes du design system.
+            7. MCP SYNC: Si changement DB, effectuer la migration et re-vérifier avec le MCP.
+        </steps>
+    </vibe_coding_workflow_mcp>
+
+    <wiki_specifications>
+        <crud>
+            - Utiliser `useActionState` pour les formulaires.
+            - Table `revisions` liée à chaque article pour l'historique complet.
+        </crud>
+        <links>
+            - Parser Regex pour les liens bibliques `[[Jean 3:16]]`.
+        </links>
+    </wiki_engine_specifications>
+
+    <execution_start>
+        1. Setup globals.css avec le thème du design system.
+        2. Migration MCP pour les tables de base.
+        3. Script d'importation de la Bible (73 livres).
+    </execution_start>
+</project_instruction>

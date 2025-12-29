@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@theme {
+  /* --- COULEURS (SYSTEME HSL) --- */
+  --color-primary: #1e293b;       /* Slate 900 - Texte principal */
+  --color-secondary: #64748b;     /* Slate 500 - Texte secondaire */
+  --color-accent: #b45309;        /* Amber 700 - Or Sacré (subtil/lisible) */
+  --color-accent-soft: #fef3c7;   /* Amber 100 - Backgrounds accent */
+  --color-danger: #991b1b;        /* Red 800 - Erreurs / Liturgique */
+  --color-surface: #ffffff;       /* Fond cartes */
+  --color-background: #f8fafc;    /* Slate 50 - Fond page */
+  --color-border: #e2e8f0;        /* Slate 200 - Bordures */
+
+  /* --- TYPOGRAPHIE --- */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Libre Baskerville", serif;
+
+  /* --- RAYONS --- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+
+  /* --- OMBRES --- */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-floating: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+}
+
+/* Utility classes custom */
+.serif-title {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+/* === BEM COMPONENT STYLES === */
+
+/* Form Components */
+.form__group {
+  @apply space-y-2;
+}
+
+.form__label {
+  @apply block text-sm font-medium text-primary;
+}
+
+.form__input,
+.form__textarea,
+.form__select {
+  @apply w-full px-3 py-2 bg-white border border-border rounded-md text-sm;
+  @apply focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent;
+  @apply transition-all placeholder:text-slate-400;
+}
+
+.form__textarea {
+  @apply font-mono text-slate-600;
+}
+
+/* Button Components (BEM) */
+.btn {
+  @apply px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn--primary {
+  @apply bg-primary hover:bg-slate-800 text-white;
+  @apply focus:ring-primary;
+}
+
+.btn--secondary {
+  @apply bg-white hover:bg-slate-50 text-primary border border-border;
+}
+
+.btn--accent {
+  @apply bg-accent hover:bg-amber-800 text-white;
+}
+
+.btn--ghost {
+  @apply text-secondary hover:text-primary hover:bg-slate-100;
+  @apply shadow-none;
+}
+
+.btn--danger {
+  @apply text-danger hover:bg-red-50 border border-transparent hover:border-red-100;
+  @apply shadow-none;
+}
+
+.btn--block {
+  @apply w-full;
+}
+
+/* Card Components (BEM) */
+.card {
+  @apply bg-surface rounded-lg border border-border shadow-sm;
+}
+
+.card__header {
+  @apply p-6 border-b border-border;
+}
+
+.card__body {
+  @apply p-6;
+}
+
+.card__footer {
+  @apply p-6 border-t border-border bg-slate-50;
+}
+
+/* Alert Components (BEM) */
+.alert {
+  @apply px-4 py-3 rounded-md flex items-start gap-3;
+}
+
+.alert--error {
+  @apply bg-red-50 border border-red-100 text-red-900;
+}
+
+.alert--warning {
+  @apply bg-accent-soft border border-accent/20 text-amber-900;
+}
+
+.alert__icon {
+  @apply w-5 h-5 mt-0.5 flex-shrink-0;
+}
+
+/* Verse Card (BEM) */
+.verse-card {
+  @apply bg-surface rounded-lg border border-border p-6 shadow-sm;
+  @apply hover:shadow-md transition-shadow relative overflow-hidden group;
+}
+
+.verse-card--accent {
+  @apply before:absolute before:top-0 before:left-0 before:w-1 before:h-full before:bg-accent;
+}
+
+.verse-card__header {
+  @apply flex justify-between items-start mb-4;
+}
+
+.verse-card__reference {
+  @apply text-xs font-bold text-accent uppercase tracking-wider;
+}
+
+.verse-card__actions {
+  @apply flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity;
+}
+
+.verse-card__text {
+  @apply font-serif text-xl leading-relaxed text-primary mb-4;
+}
+
+.verse-card__meta {
+  @apply flex items-center gap-2 text-xs text-secondary;
+}
+
+/* Badge Component (BEM) */
+.badge {
+  @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium;
+}
+
+.badge--default {
+  @apply bg-slate-100 text-slate-700;
+}
+
+.badge--accent {
+  @apply bg-accent-soft text-accent;
+}
+
+.badge--danger {
+  @apply bg-red-100 text-red-800;
+}

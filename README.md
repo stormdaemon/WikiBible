@@ -1,4 +1,4 @@
-# 🇻🇦 Wiki Catholic - La Bible Catholique (73 Livres)
+# 🇻🇦 WikiBible - La Bible Catholique (73 Livres)
 
 Encyclopédie biblique catholique complète avec le canon de 73 livres, propulsée par Next.js 16.1, React 19.2, Tailwind v4 et Supabase.
 
@@ -161,4 +161,4 @@ bun run lint      # ESLint
 
 ---
 
-**Wiki Catholic** - La Parole de Dieu accessible à tous. 🇻🇦
+**WikiBible** - La Parole de Dieu accessible à tous. 🇻🇦

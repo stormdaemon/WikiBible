@@ -22,7 +22,7 @@ export default async function BiblePage() {
                 <path d="M12 2v20M2 12h20"/>
               </svg>
             </div>
-            <span className="font-bold text-lg tracking-tight">WikiCatholic</span>
+            <span className="font-bold text-lg tracking-tight">WikiBible</span>
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/bible" className="text-sm font-medium text-accent">Bible</Link>

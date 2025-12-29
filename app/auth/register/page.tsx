@@ -15,7 +15,7 @@ export default function RegisterPage() {
             Créer un compte
           </h1>
           <p className="text-secondary">
-            Rejoignez Wiki Catholic
+            Rejoignez WikiBible
           </p>
         </div>
 

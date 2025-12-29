@@ -10,7 +10,7 @@ export default function HomePage() {
                 <path d="M12 2v20M2 12h20"/>
               </svg>
             </div>
-            <span className="font-bold text-lg tracking-tight">WikiCatholic</span>
+            <span className="font-bold text-lg tracking-tight">WikiBible</span>
           </div>
           <nav className="flex items-center gap-4">
             <a href="#" className="text-sm font-medium text-secondary hover:text-primary">Bible</a>
@@ -24,7 +24,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-serif text-primary mb-4">
-            Wiki Catholic
+            WikiBible
           </h1>
           <p className="text-xl text-secondary max-w-2xl mx-auto">
             La Bible Catholique complète (73 livres) et l'encyclopédie catholique collaborative
@@ -107,7 +107,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="max-w-7xl mx-auto px-6 py-8">
         <div className="text-center text-sm text-secondary">
-          <p>Wiki Catholic - La Bible Catholique (73 livres)</p>
+          <p>WikiBible - La Bible Catholique (73 livres)</p>
           <p className="mt-2">Powered by Next.js 16.1, React 19.2, Tailwind v4, Supabase</p>
         </div>
       </footer>

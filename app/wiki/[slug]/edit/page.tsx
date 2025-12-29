@@ -26,7 +26,7 @@ export default async function EditArticlePage({
                 <path d="M12 2v20M2 12h20"/>
               </svg>
             </div>
-            <span className="font-bold text-lg tracking-tight">WikiCatholic</span>
+            <span className="font-bold text-lg tracking-tight">WikiBible</span>
           </a>
         </div>
       </header>

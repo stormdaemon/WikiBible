@@ -15,7 +15,7 @@ export default function LoginPage() {
             Connexion
           </h1>
           <p className="text-secondary">
-            Accédez à Wiki Catholic
+            Accédez à WikiBible
           </p>
         </div>
 

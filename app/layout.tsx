@@ -17,7 +17,7 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  title: "Wiki Catholic - La Bible Catholique (73 Livres)",
+  title: "WikiBible - La Bible Catholique (73 Livres)",
   description: "Encyclopédie biblique catholique complète avec le canon de 73 livres",
 };
 

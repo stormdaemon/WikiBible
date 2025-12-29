@@ -7,6 +7,29 @@ import Link from 'next/link';
 export default function RegisterPage() {
   const [state, formAction] = useActionState(registerAction, null as Awaited<ReturnType<typeof registerAction>> | null);
 
+  if (state?.success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+        <div className="max-w-md w-full bg-surface rounded-lg border border-border p-8 shadow-card text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
+            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-primary mb-4">Bienvenue, pèlerin !</h2>
+          <p className="text-secondary mb-6">
+            Votre inscription a été enregistrée avec succès. Une colombe numérique (email) est en route vers votre messagerie.
+            <br /><br />
+            Veuillez confirmer votre foi... et votre adresse email en cliquant sur le lien reçu.
+          </p>
+          <Link href="/auth/login" className="btn btn--primary btn--block">
+            Retour à la connexion
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
       <div className="max-w-md w-full">

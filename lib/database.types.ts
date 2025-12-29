@@ -23,6 +23,7 @@ export type Database = {
           name: string
           name_en: string
           position: number
+          slug: string | null
           testament: string
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           name: string
           name_en: string
           position: number
+          slug?: string | null
           testament: string
         }
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           name?: string
           name_en?: string
           position?: number
+          slug?: string | null
           testament?: string
         }
         Relationships: []
@@ -50,6 +53,7 @@ export type Database = {
       bible_verses: {
         Row: {
           book_id: string
+          book_slug: string | null
           chapter: number
           created_at: string | null
           id: string
@@ -59,6 +63,7 @@ export type Database = {
         }
         Insert: {
           book_id: string
+          book_slug?: string | null
           chapter: number
           created_at?: string | null
           id?: string
@@ -68,6 +73,7 @@ export type Database = {
         }
         Update: {
           book_id?: string
+          book_slug?: string | null
           chapter?: number
           created_at?: string | null
           id?: string

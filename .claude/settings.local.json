@@ -19,7 +19,8 @@
       "mcp__web-reader__webReader",
       "Bash(xargs sed:*)",
       "Bash(bun add:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "mcp__supabase__execute_sql"
     ],
     "deny": [],
     "ask": []

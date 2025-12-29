@@ -27,6 +27,7 @@ export default async function BiblePage() {
           <nav className="flex items-center gap-4">
             <Link href="/bible" className="text-sm font-medium text-accent">Bible</Link>
             <Link href="/wiki" className="text-sm font-medium text-secondary hover:text-primary">Wiki</Link>
+            <Link href="/auth/login" className="text-sm font-medium text-secondary hover:text-primary">Connexion</Link>
           </nav>
         </div>
       </header>
@@ -47,7 +48,7 @@ export default async function BiblePage() {
             {oldTestament.map(book => (
               <Link
                 key={book.id}
-                href={`/bible/${book.id}/1`}
+                href={`/bible/${book.slug}/1`}
                 className="card card--clickable hover:border-accent transition-colors"
               >
                 <div className="p-4">
@@ -78,7 +79,7 @@ export default async function BiblePage() {
             {newTestament.map(book => (
               <Link
                 key={book.id}
-                href={`/bible/${book.id}/1`}
+                href={`/bible/${book.slug}/1`}
                 className="card card--clickable hover:border-accent transition-colors"
               >
                 <div className="p-4">

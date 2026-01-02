@@ -91,17 +91,12 @@ export async function registerAction(state: ActionResult | null, formData: FormD
 
   const supabase = await createClient();
 
-  // Récupérer l'URL de base pour la redirection
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ||
-                  process.env.NEXT_PUBLIC_VERCEL_URL ||
-                  'http://localhost:3000';
-
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { name },
-      emailRedirectTo: `${baseUrl}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://wikibibledev.netlify.app'}/auth/callback`,
     },
   });
 

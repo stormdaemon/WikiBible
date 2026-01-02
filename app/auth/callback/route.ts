@@ -12,15 +12,20 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        type,
+      // Pour signup avec PKCE, on doit utiliser verifyOtp avec token_hash
+      const { data, error } = await supabase.auth.verifyOtp({
+        type: type as any,
         token_hash,
       });
 
       if (error) {
         console.error('Error verifying OTP:', error);
+        console.error('Token hash:', token_hash);
+        console.error('Type:', type);
         return NextResponse.redirect(new URL('/auth/login?error=verification_failed', request.url));
       }
+
+      console.log('Verification successful!', data);
 
       // Redirection vers la page d'accueil après confirmation réussie
       return NextResponse.redirect(new URL('/auth/login?verified=true', request.url));
@@ -31,5 +36,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Redirection si pas de token_hash
+  console.log('No token_hash or type in URL');
   return NextResponse.redirect(new URL('/auth/login?error=no_token', request.url));
 }

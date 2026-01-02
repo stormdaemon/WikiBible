@@ -1,6 +1,7 @@
 import { getBookAction, getChapterAction } from '@/app/actions';
 import Link from 'next/link';
 import { ChapterContent } from '@/components/ChapterContent';
+import { createClient } from '@/utils/supabase/server';
 
 export default async function ChapterPage({
   params,
@@ -21,6 +22,11 @@ export default async function ChapterPage({
 
   const book = bookResult.book;
   const verses = chapterResult.verses;
+
+  // Vérifier l'authentification
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAuthenticated = !!user;
 
   return (
     <main className="min-h-screen">
@@ -75,6 +81,7 @@ export default async function ChapterPage({
           bookId={bookId}
           chapter={chapter}
           verses={verses}
+          isAuthenticated={isAuthenticated}
         />
 
         {/* Chapter Navigation */}

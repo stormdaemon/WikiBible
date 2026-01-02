@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AnnotationModal } from './AnnotationModal';
-import { AddLinkModal } from './AddLinkModal';
 import { VerseCard } from './VerseCard';
 import { getVerseContributionsAction } from '@/app/actions';
 
@@ -18,6 +16,7 @@ interface ChapterContentProps {
   bookId: string;
   chapter: number;
   verses: Verse[];
+  isAuthenticated: boolean;
 }
 
 export function ChapterContent({
@@ -25,6 +24,7 @@ export function ChapterContent({
   bookId,
   chapter,
   verses,
+  isAuthenticated,
 }: ChapterContentProps) {
   const [selectedVerseId, setSelectedVerseId] = useState<string | null>(null);
   const [selectedVerseNumber, setSelectedVerseNumber] = useState<number | null>(null);
@@ -85,6 +85,7 @@ export function ChapterContent({
             contributions={verseContributions[verse.id]}
             onOpenContributions={() => handleOpenContributions(verse.id, verse.verse)}
             onOpenAddLink={() => handleOpenAddLink(verse.id, verse.verse)}
+            isAuthenticated={isAuthenticated}
           />
         ))}
       </div>
@@ -111,3 +112,7 @@ export function ChapterContent({
     </>
   );
 }
+
+// Import des composants modaux
+import { AnnotationModal } from './AnnotationModal';
+import { AddLinkModal } from './AddLinkModal';

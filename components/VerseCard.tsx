@@ -16,6 +16,7 @@ interface VerseCardProps {
   };
   onOpenContributions: () => void;
   onOpenAddLink: () => void;
+  isAuthenticated: boolean;
 }
 
 export function VerseCard({
@@ -28,6 +29,7 @@ export function VerseCard({
   contributions,
   onOpenContributions,
   onOpenAddLink,
+  isAuthenticated,
 }: VerseCardProps) {
   const hasContributions =
     contributions &&
@@ -81,18 +83,35 @@ export function VerseCard({
             <span className="hidden sm:inline">Voir</span>
           </button>
 
-          {/* Bouton Ajouter un lien */}
-          <button
-            onClick={onOpenAddLink}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
-            title="Ajouter un lien"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            <span className="hidden sm:inline">Lier</span>
-          </button>
+          {/* Bouton Ajouter un lien - SEULEMENT si connecté */}
+          {isAuthenticated === true && (
+            <button
+              onClick={onOpenAddLink}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
+              title="Ajouter un lien"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span className="hidden sm:inline">Lier</span>
+            </button>
+          )}
+
+          {/* Si pas connecté - Bouton de connexion */}
+          {isAuthenticated === false && (
+            <a
+              href="/auth/login"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium"
+              title="Connectez-vous pour ajouter des liens"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span className="hidden sm:inline">Connexion</span>
+            </a>
+          )}
         </div>
       </div>
 

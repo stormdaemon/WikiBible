@@ -19,6 +19,18 @@ interface VerseLink {
   author_id: string | null;
 }
 
+interface WikiLink {
+  id: string;
+  link_type: string;
+  description: string | null;
+  wiki_article: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
+  author_id: string | null;
+}
+
 interface Annotation {
   id: string;
   content: string;
@@ -50,6 +62,7 @@ interface AnnotationModalProps {
   verseReference: string;
   contributions: {
     links: VerseLink[];
+    wiki_links?: WikiLink[];
     annotations: Annotation[];
     external_sources: ExternalSource[];
   };
@@ -57,7 +70,7 @@ interface AnnotationModalProps {
   onClose: () => void;
 }
 
-type TabType = 'links' | 'annotations' | 'sources';
+type TabType = 'links' | 'wiki' | 'sources' | 'annotations';
 
 export function AnnotationModal({
   verseId,
@@ -137,6 +150,26 @@ export function AnnotationModal({
           </button>
 
           <button
+            onClick={() => setActiveTab('wiki')}
+            className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'wiki'
+                ? 'border-accent text-accent bg-white'
+                : 'border-transparent text-slate-600 hover:text-slate-800 hover:bg-white/50'
+            }`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span>Articles Wiki</span>
+            {contributions.wiki_links && contributions.wiki_links.length > 0 && (
+              <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full">
+                {contributions.wiki_links.length}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('sources')}
             className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'sources'
@@ -181,6 +214,9 @@ export function AnnotationModal({
           {activeTab === 'links' && (
             <LinksTab links={contributions.links} />
           )}
+          {activeTab === 'wiki' && (
+            <WikiTab wiki_links={contributions.wiki_links || []} />
+          )}
           {activeTab === 'sources' && (
             <SourcesTab sources={contributions.external_sources} />
           )}
@@ -216,6 +252,7 @@ function LinksTab({ links }: { links: VerseLink[] }) {
     prophecy: 'Prophétie accomplie',
     typology: 'Typologie',
     commentary: 'Commentaire',
+    concordance: 'Concordance (autre version)',
   };
 
   const linkTypeColors: Record<string, string> = {
@@ -224,6 +261,7 @@ function LinksTab({ links }: { links: VerseLink[] }) {
     prophecy: 'bg-purple-100 text-purple-700',
     typology: 'bg-orange-100 text-orange-700',
     commentary: 'bg-slate-100 text-slate-700',
+    concordance: 'bg-teal-100 text-teal-700',
   };
 
   return (
@@ -291,6 +329,51 @@ function SourcesTab({ sources }: { sources: ExternalSource[] }) {
           <p className="text-sm text-slate-700 italic border-l-3 border-accent pl-3">
             "{item.external_source.content}"
           </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WikiTab({ wiki_links }: { wiki_links: WikiLink[] }) {
+  if (wiki_links.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto text-slate-300 mb-3">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+        <p className="text-slate-500">Aucun article wiki lié</p>
+        <p className="text-sm text-slate-400 mt-1">Ce verset n'est pas lié à des articles du wiki</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {wiki_links.map((link) => (
+        <div
+          key={link.id}
+          className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-semibold text-primary text-lg">
+              {link.wiki_article?.title || 'Article inconnu'}
+            </h3>
+          </div>
+          {link.description && (
+            <p className="text-slate-600 mt-2 mb-3">{link.description}</p>
+          )}
+          <a
+            href={`/wiki/${link.wiki_article?.slug || '#'}`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            Lire l'article
+          </a>
         </div>
       ))}
     </div>

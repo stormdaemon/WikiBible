@@ -64,6 +64,7 @@ export function ChapterContent({
   if (contributions && selectedVerseId) {
     verseContributions[selectedVerseId] = {
       links: contributions.links?.length || 0,
+      wiki_links: contributions.wiki_links || [],
       annotations: contributions.annotations?.length || 0,
       external_sources: contributions.external_sources?.length || 0,
     };

@@ -98,49 +98,44 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
               required
             >
               <option value="">Sélectionner un type...</option>
-              <option value="citation">📖 Citation directe</option>
-              <option value="parallel">🔄 Parallèle thématique</option>
+              <option value="citation">📖 Citation biblique</option>
+              <option value="concordance">🔄 Autre version biblique</option>
+              <option value="parallel">🔗 Référence théologique (auteur, document)</option>
               <option value="prophecy">✨ Prophétie accomplie</option>
-              <option value="typology">🎭 Typologie</option>
+              <option value="typology">🎭 Typologie (préfiguration)</option>
               <option value="commentary">💭 Commentaire</option>
+              <option value="wiki">📚 Article Wiki</option>
             </select>
+            <p className="text-xs text-slate-500 mt-1.5">
+              Choisissez le type de lien que vous créez
+            </p>
           </div>
 
           {/* Target Verse */}
           <div>
             <label htmlFor="target_verse" className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Verset cible <span className="text-red-500">*</span>
+              Référence cible <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="target_verse"
               name="target_verse"
-              placeholder="Ex: Jean 3:16, Genèse 1:1"
+              placeholder="Ex: Jean 3:16, Saint Augustin, Catéchisme 1234, ou Titre d'article Wiki"
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
               required
             />
-            <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <p className="text-xs text-slate-500 mt-1.5 flex items-start gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
-              Format: Livre Chapitre:Verset (ex: Jean 3:16)
+              <span>
+                <strong>Verset biblique</strong> : "Livre Chapitre:Verset"<br/>
+                <strong>Auteur/Document</strong> : "Saint Augustin", "Catéchisme 1234"<br/>
+                <strong>Article Wiki</strong> : Titre exact de l'article
+              </span>
             </p>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Description (optionnel)
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Expliquez ce lien théologique..."
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
-              rows={3}
-            />
           </div>
 
           {/* Actions */}
@@ -174,6 +169,30 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
                 </>
               )}
             </button>
+          </div>
+
+          {/* Description - Section optionnelle clairement séparée */}
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <details className="group">
+              <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-open:rotate-90">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>Ajouter une description (optionnel)</span>
+              </summary>
+              <div className="mt-3">
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Expliquez ce lien théologique, son contexte, sa signification..."
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none text-sm"
+                  rows={3}
+                />
+                <p className="text-xs text-slate-500 mt-1.5">
+                  Décrivez le sens de cette référence pour aider les autres utilisateurs à comprendre le lien
+                </p>
+              </div>
+            </details>
           </div>
         </form>
       </div>

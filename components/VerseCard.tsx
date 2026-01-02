@@ -2,6 +2,15 @@
 
 import { useState } from 'react';
 
+interface WikiLink {
+  id: string;
+  wiki_article: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
+}
+
 interface VerseCardProps {
   verseId: string;
   bookName: string;
@@ -13,6 +22,7 @@ interface VerseCardProps {
     links: number;
     annotations: number;
     external_sources: number;
+    wiki_links?: WikiLink[];
   };
   onOpenContributions: () => void;
   onOpenAddLink: () => void;
@@ -40,6 +50,9 @@ export function VerseCard({
   const totalContributions = hasContributions
     ? (contributions.links! + contributions.annotations! + contributions.external_sources!)
     : 0;
+
+  const hasWikiLinks = contributions?.wiki_links && contributions.wiki_links.length > 0;
+  const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
   return (
     <div
@@ -82,6 +95,21 @@ export function VerseCard({
             </svg>
             <span className="hidden sm:inline">Voir</span>
           </button>
+
+          {/* Bouton Lire l'article Wiki - SEULEMENT si lien wiki existe */}
+          {hasWikiLinks && firstWikiLink?.wiki_article && (
+            <a
+              href={`/wiki/${firstWikiLink.wiki_article.slug}`}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium shadow-sm"
+              title="Lire l'article wiki associé"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <span className="hidden sm:inline">Lire l'article</span>
+            </a>
+          )}
 
           {/* Bouton Ajouter un lien - SEULEMENT si connecté */}
           {isAuthenticated === true && (

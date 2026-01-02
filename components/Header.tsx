@@ -42,6 +42,13 @@ export default function Header({ user }: { user: User | null }) {
                 <Link href="/wiki/new" className="btn btn--primary text-sm px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
                   + Nouvel Article
                 </Link>
+                <Link href="/profil" className="text-secondary hover:text-primary font-medium text-sm flex items-center gap-1.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Mon Profil
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="text-secondary hover:text-primary font-medium text-sm"
@@ -95,6 +102,13 @@ export default function Header({ user }: { user: User | null }) {
           <div className="pt-4 pb-4 border-t border-border">
             {user ? (
               <div className="px-2 space-y-3">
+                <Link href="/profil" className="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:text-primary hover:bg-slate-50 flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Mon Profil
+                </Link>
                 <Link href="/wiki/new" className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90" onClick={() => setIsOpen(false)}>
                   + Nouvel Article
                 </Link>

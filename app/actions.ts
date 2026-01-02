@@ -39,6 +39,13 @@ const UpdateArticleSchema = z.object({
   is_minor_edit: z.boolean().optional(),
 });
 
+const UpdateProfileSchema = z.object({
+  user_id: z.string().uuid(),
+  username: z.string().min(2).optional(),
+  confession: z.enum(['catholic', 'orthodox', 'protestant', 'anglican', 'other']),
+  bio: z.string().optional(),
+});
+
 // === AUTH ACTIONS ===
 
 import { redirect } from 'next/navigation';
@@ -103,6 +110,50 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   revalidatePath('/', 'layout');
   redirect('/auth/login');
+}
+
+export async function updateProfileAction(state: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const validatedFields = UpdateProfileSchema.safeParse({
+    user_id: formData.get('user_id'),
+    username: formData.get('username'),
+    confession: formData.get('confession'),
+    bio: formData.get('bio'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { user_id, username, confession, bio } = validatedFields.data;
+
+  // Vérifier que l'utilisateur modifie son propre profil
+  if (user.id !== user_id) {
+    return { error: 'Non autorisé' };
+  }
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .upsert({
+      user_id,
+      username,
+      confession,
+      bio,
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/profil');
+  return { success: true };
 }
 
 
@@ -355,7 +406,7 @@ export async function getRecentArticlesAction(limit = 10) {
 const CreateVerseLinkSchema = z.object({
   source_verse_id: z.string().uuid(),
   target_verse: z.string().min(1),
-  link_type: z.enum(['citation', 'parallel', 'prophecy', 'typology', 'commentary']),
+  link_type: z.enum(['citation', 'parallel', 'prophecy', 'typology', 'commentary', 'concordance', 'wiki']),
   description: z.string().optional(),
 });
 
@@ -418,7 +469,23 @@ async function parseVerseReference(reference: string) {
 }
 
 /**
- * Crée un lien entre deux versets bibliques
+ * Recherche un article wiki par son titre
+ */
+async function findWikiArticle(title: string) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from('wiki_articles')
+    .select('id, slug')
+    .ilike('title', `%${title}%`)
+    .limit(1);
+
+  // Return the first article or null
+  return data && data.length > 0 ? data[0] : null;
+}
+
+/**
+ * Crée un lien depuis un verset
  */
 export async function createVerseLinkAction(
   state: ActionResult | null,
@@ -444,21 +511,45 @@ export async function createVerseLinkAction(
 
   const { source_verse_id, target_verse, link_type, description } = validatedFields.data;
 
-  // Parser la référence du verset cible
-  const targetVerse = await parseVerseReference(target_verse);
-  if (!targetVerse) {
-    return { error: 'Verset cible non trouvé' };
+  // Récupérer la confession de l'utilisateur depuis son profil
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('confession')
+    .eq('user_id', user.id)
+    .single();
+
+  const userConfession = profile?.confession || 'catholic';
+
+  let target_verse_id: string | null = null;
+
+  // Si c'est un lien wiki, rechercher l'article
+  if (link_type === 'wiki') {
+    const article = await findWikiArticle(target_verse);
+    if (!article) {
+      return { error: 'Article wiki non trouvé. Vérifiez le titre exact.' };
+    }
+    // Pour les wiki, on stocke l'ID de l'article dans target_verse_id
+    target_verse_id = article.id;
+  } else {
+    // Pour les versets bibliques, parser la référence
+    const targetVerse = await parseVerseReference(target_verse);
+    if (targetVerse) {
+      target_verse_id = targetVerse.id;
+    }
+    // Sinon target_verse_id reste null (référence textuelle libre)
   }
 
-  // Créer le lien
+  // Créer le lien avec la référence textuelle et la confession automatique
   const { error } = await supabase
     .from('verse_links')
     .insert({
       source_verse_id,
-      target_verse_id: targetVerse.id,
+      target_verse_id, // peut être null pour les références non bibliques
       link_type,
       author_id: user.id,
       description,
+      target_reference: target_verse, // stocker la référence textuelle
+      confession: userConfession, // confession automatique depuis le profil
     });
 
   if (error) {
@@ -594,7 +685,7 @@ export async function linkExternalSourceAction(
 export async function getVerseContributionsAction(verseId: string) {
   const supabase = await createClient();
 
-  // Récupérer les liens versets
+  // Récupérer tous les liens
   const { data: links } = await supabase
     .from('verse_links')
     .select(`
@@ -602,6 +693,27 @@ export async function getVerseContributionsAction(verseId: string) {
       bible_verses!verse_links_target_verse_id_fkey(*, bible_books(*))
     `)
     .eq('source_verse_id', verseId);
+
+  // Séparer les liens wiki et les liens bibliques
+  const wikiLinks = links?.filter(link => link.link_type === 'wiki') || [];
+  const bibleLinks = links?.filter(link => link.link_type !== 'wiki') || [];
+
+  // Pour les liens wiki, récupérer les détails des articles
+  const wikiLinksWithArticles = await Promise.all(
+    wikiLinks.map(async (link) => {
+      // target_verse_id contient l'ID de l'article wiki pour les liens wiki
+      const { data: article } = await supabase
+        .from('wiki_articles')
+        .select('id, title, slug')
+        .eq('id', link.target_verse_id)
+        .single();
+
+      return {
+        ...link,
+        wiki_article: article,
+      };
+    })
+  );
 
   // Récupérer les annotations principales (pas les réponses)
   const { data: annotations } = await supabase
@@ -620,7 +732,8 @@ export async function getVerseContributionsAction(verseId: string) {
     .eq('verse_id', verseId);
 
   return {
-    links: links || [],
+    links: bibleLinks,
+    wiki_links: wikiLinksWithArticles,
     annotations: annotations || [],
     external_sources: external_sources || [],
   };

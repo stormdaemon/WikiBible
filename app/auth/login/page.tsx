@@ -3,12 +3,15 @@
 import { loginAction } from '@/app/actions';
 import { useActionState } from 'react';
 import Link from 'next/link';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(loginAction, null as Awaited<ReturnType<typeof loginAction>> | null);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+    <>
+      <ConfirmationModal />
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-serif font-bold text-primary mb-2">
@@ -77,5 +80,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

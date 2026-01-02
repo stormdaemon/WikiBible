@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 export default function HomePage() {
   return (
     <main className="min-h-screen flex flex-col">
+      <ConfirmationModal />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-6 py-16 flex-1">

@@ -4,10 +4,17 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 
+import { logoutAction } from '@/app/actions';
+
 export default function Header({ user }: { user: User | null }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  const handleLogout = async () => {
+    await logoutAction();
+    setIsOpen(false);
+  };
 
   return (
     <header className="bg-surface border-b border-border sticky top-0 z-50 bg-white">
@@ -31,9 +38,17 @@ export default function Header({ user }: { user: User | null }) {
             <Link href="/wiki" className="text-secondary hover:text-primary font-medium">Wiki</Link>
 
             {user ? (
-              <Link href="/wiki/new" className="btn btn--primary text-sm px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
-                + Nouvel Article
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link href="/wiki/new" className="btn btn--primary text-sm px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
+                  + Nouvel Article
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-secondary hover:text-primary font-medium text-sm"
+                >
+                  Déconnexion
+                </button>
+              </div>
             ) : (
               <div className="flex items-center gap-4">
                 <Link href="/auth/login" className="text-secondary hover:text-primary font-medium">Connexion</Link>
@@ -52,13 +67,12 @@ export default function Header({ user }: { user: User | null }) {
               aria-expanded={isOpen}
             >
               <span className="sr-only">Ouvrir le menu</span>
-              {/* Icon map (menu) / X (close) */}
               {isOpen ? (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -80,13 +94,19 @@ export default function Header({ user }: { user: User | null }) {
           </div>
           <div className="pt-4 pb-4 border-t border-border">
             {user ? (
-              <div className="px-2">
+              <div className="px-2 space-y-3">
                 <Link href="/wiki/new" className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90" onClick={() => setIsOpen(false)}>
                   + Nouvel Article
                 </Link>
-                <div className="mt-3 px-2 text-center text-sm text-secondary">
-                  Connecté en tant que {user.email}
+                <div className="px-2 text-center text-sm text-secondary">
+                  {user.email}
                 </div>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-center px-4 py-2 border border-slate-300 text-base font-medium rounded-md text-danger bg-white hover:bg-slate-50"
+                >
+                  Déconnexion
+                </button>
               </div>
             ) : (
               <div className="px-2 space-y-3">

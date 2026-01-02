@@ -14,7 +14,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
 
   return (
     <div className="card">
-      <form action={formAction} className="card__body space-y-6">
+      <form action={formAction} className="space-y-6 p-6">
         <input type="hidden" name="article_id" value={article.id} />
 
         <div className="form__group">

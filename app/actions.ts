@@ -41,6 +41,8 @@ const UpdateArticleSchema = z.object({
 
 // === AUTH ACTIONS ===
 
+import { redirect } from 'next/navigation';
+
 export async function loginAction(state: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const validatedFields = LoginSchema.safeParse({
     email: formData.get('email'),
@@ -63,7 +65,8 @@ export async function loginAction(state: ActionResult | null, formData: FormData
     return { error: error.message };
   }
 
-  return { success: true, data };
+  revalidatePath('/', 'layout');
+  redirect('/');
 }
 
 export async function registerAction(state: ActionResult | null, formData: FormData): Promise<ActionResult> {
@@ -97,13 +100,12 @@ export async function registerAction(state: ActionResult | null, formData: FormD
 
 export async function logoutAction() {
   const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    return { error: error.message };
-  }
-  revalidatePath('/');
-  return { success: true };
+  await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
+  redirect('/auth/login');
 }
+
+
 
 // === WIKI ACTIONS ===
 
@@ -346,4 +348,280 @@ export async function getRecentArticlesAction(limit = 10) {
   }
 
   return { success: true, articles: data };
+}
+
+// === VERSE LINKS & ANNOTATIONS ACTIONS ===
+
+const CreateVerseLinkSchema = z.object({
+  source_verse_id: z.string().uuid(),
+  target_verse: z.string().min(1),
+  link_type: z.enum(['citation', 'parallel', 'prophecy', 'typology', 'commentary']),
+  description: z.string().optional(),
+});
+
+const CreateAnnotationSchema = z.object({
+  verse_id: z.string().uuid(),
+  content: z.string().min(1),
+  parent_id: z.string().uuid().optional(),
+});
+
+const CreateExternalSourceSchema = z.object({
+  title: z.string().min(1),
+  author_name: z.string().optional(),
+  source_type: z.enum(['saint', 'father', 'council', 'catechism']),
+  reference: z.string().optional(),
+  content: z.string().min(1),
+});
+
+const LinkExternalSourceSchema = z.object({
+  verse_id: z.string().uuid(),
+  external_source_id: z.string().uuid(),
+  link_type: z.enum(['citation', 'commentary', 'reference']).optional(),
+});
+
+/**
+ * Parse une référence de verset biblique (ex: "Jean 3:16", "Genèse 1:1")
+ * et retourne le verse_id correspondant
+ */
+async function parseVerseReference(reference: string) {
+  const supabase = await createClient();
+
+  // Parser la référence (format: "Livre Chapitre:Verset")
+  const match = reference.match(/^(.+?)\s+(\d+):(\d+)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const [, bookName, chapter, verse] = match;
+
+  // Rechercher le livre par nom (en français ou anglais)
+  const { data: book } = await supabase
+    .from('bible_books')
+    .select('id')
+    .or(`name.ilike.${bookName},name_en.ilike.${bookName}`)
+    .single();
+
+  if (!book) {
+    return null;
+  }
+
+  // Rechercher le verset
+  const { data: verseData } = await supabase
+    .from('bible_verses')
+    .select('id')
+    .eq('book_id', book.id)
+    .eq('chapter', parseInt(chapter))
+    .eq('verse', parseInt(verse))
+    .single();
+
+  return verseData;
+}
+
+/**
+ * Crée un lien entre deux versets bibliques
+ */
+export async function createVerseLinkAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = CreateVerseLinkSchema.safeParse({
+    source_verse_id: formData.get('source_verse_id'),
+    target_verse: formData.get('target_verse'),
+    link_type: formData.get('link_type'),
+    description: formData.get('description'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { source_verse_id, target_verse, link_type, description } = validatedFields.data;
+
+  // Parser la référence du verset cible
+  const targetVerse = await parseVerseReference(target_verse);
+  if (!targetVerse) {
+    return { error: 'Verset cible non trouvé' };
+  }
+
+  // Créer le lien
+  const { error } = await supabase
+    .from('verse_links')
+    .insert({
+      source_verse_id,
+      target_verse_id: targetVerse.id,
+      link_type,
+      author_id: user.id,
+      description,
+    });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Crée une annotation sur un verset
+ */
+export async function createAnnotationAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = CreateAnnotationSchema.safeParse({
+    verse_id: formData.get('verse_id'),
+    content: formData.get('content'),
+    parent_id: formData.get('parent_id'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { verse_id, content, parent_id } = validatedFields.data;
+
+  const { error } = await supabase
+    .from('verse_annotations')
+    .insert({
+      verse_id,
+      author_id: user.id,
+      content,
+      parent_id: parent_id || null,
+    });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Crée une source externe (Saint, Père de l'Église, etc.)
+ */
+export async function createExternalSourceAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = CreateExternalSourceSchema.safeParse({
+    title: formData.get('title'),
+    author_name: formData.get('author_name'),
+    source_type: formData.get('source_type'),
+    reference: formData.get('reference'),
+    content: formData.get('content'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { error } = await supabase
+    .from('external_sources')
+    .insert(validatedFields.data);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Lie une source externe à un verset
+ */
+export async function linkExternalSourceAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = LinkExternalSourceSchema.safeParse({
+    verse_id: formData.get('verse_id'),
+    external_source_id: formData.get('external_source_id'),
+    link_type: formData.get('link_type'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { error } = await supabase
+    .from('verse_external_links')
+    .insert({
+      ...validatedFields.data,
+      author_id: user.id,
+    });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Récupère toutes les contributions pour un verset (liens, annotations, sources externes)
+ */
+export async function getVerseContributionsAction(verseId: string) {
+  const supabase = await createClient();
+
+  // Récupérer les liens versets
+  const { data: links } = await supabase
+    .from('verse_links')
+    .select(`
+      *,
+      bible_verses!verse_links_target_verse_id_fkey(*, bible_books(*))
+    `)
+    .eq('source_verse_id', verseId);
+
+  // Récupérer les annotations principales (pas les réponses)
+  const { data: annotations } = await supabase
+    .from('verse_annotations')
+    .select('*')
+    .eq('verse_id', verseId)
+    .is('parent_id', null);
+
+  // Récupérer les sources externes liées
+  const { data: external_sources } = await supabase
+    .from('verse_external_links')
+    .select(`
+      *,
+      external_source:external_sources(*)
+    `)
+    .eq('verse_id', verseId);
+
+  return {
+    links: links || [],
+    annotations: annotations || [],
+    external_sources: external_sources || [],
+  };
 }

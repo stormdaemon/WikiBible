@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 import Header from '@/components/Header';
-import { createPublicClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 
 // ... (rest of imports)
 
@@ -31,8 +31,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = createPublicClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient();
+
+  // Gestion robuste : getUser peut retourner null ou undefined
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (error) {
+    // En cas d'erreur, on considère l'utilisateur comme non connecté
+    console.error('Error getting user:', error);
+    user = null;
+  }
 
   return (
     <html lang="fr" className={`${inter.variable} ${libreBaskerville.variable}`}>

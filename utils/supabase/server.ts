@@ -34,10 +34,6 @@ export const createClient = async () => {
           }
         },
       },
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
     }
   );
 };

@@ -1,5 +1,6 @@
 import { getBookAction, getChapterAction } from '@/app/actions';
 import Link from 'next/link';
+import { ChapterContent } from '@/components/ChapterContent';
 
 export default async function ChapterPage({
   params,
@@ -69,30 +70,12 @@ export default async function ChapterPage({
         </div>
 
         {/* Verses */}
-        <div className="space-y-6">
-          {verses.map((verse) => (
-            <div key={verse.id} className="verse-card verse-card--accent">
-              <div className="verse-card__header">
-                <span className="verse-card__reference">
-                  {book.name} {chapter}:{verse.verse}
-                </span>
-                <div className="verse-card__actions">
-                  <button className="text-secondary hover:text-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 7v9l5-5-5-5z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <p className="verse-card__text">
-                "{verse.text}"
-              </p>
-              <div className="verse-card__meta">
-                <span className="badge badge--default">Bible Crampon</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ChapterContent
+          bookName={book.name}
+          bookId={bookId}
+          chapter={chapter}
+          verses={verses}
+        />
 
         {/* Chapter Navigation */}
         <div className="mt-12 pt-8 border-t border-border">

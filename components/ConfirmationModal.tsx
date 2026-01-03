@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 export function ConfirmationModal() {
   const searchParams = useSearchParams();
   const [showModal, setShowModal] = useState(false);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     // Vérifier si le paramètre verified est présent
@@ -29,10 +29,10 @@ export function ConfirmationModal() {
         });
       }, 1000);
 
-      // Fermer automatiquement après 5 secondes
+      // Fermer automatiquement après 15 secondes
       const timer = setTimeout(() => {
         setShowModal(false);
-      }, 5000);
+      }, 15000);
 
       return () => {
         clearTimeout(timer);
@@ -71,7 +71,7 @@ export function ConfirmationModal() {
 
         {/* Message */}
         <p className="text-secondary mb-6 leading-relaxed">
-          Votre email a été confirmé avec succès.
+          ⏳ Votre email a été confirmé avec succès.
           <br />
           Vous êtes maintenant membre à part entière de notre communauté catholique.
           <br /><br />
@@ -93,7 +93,7 @@ export function ConfirmationModal() {
           <div className="flex-1 h-2 bg-secondary/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-accent transition-all duration-1000 ease-linear"
-              style={{ width: `${(countdown / 5) * 100}%` }}
+              style={{ width: `${(countdown / 15) * 100}%` }}
             />
           </div>
           <span className="text-xs text-secondary font-medium min-w-[60px]">

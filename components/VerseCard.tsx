@@ -23,11 +23,51 @@ interface VerseCardProps {
     annotations: number;
     external_sources: number;
     wiki_links?: WikiLink[];
+    linkDetails?: Array<{
+      id: string;
+      link_type: string;
+      link_subtype?: string;
+      is_prophecy?: boolean;
+      author: {
+        username: string | null;
+        confession: string;
+      };
+      target_verse?: {
+        book_name: string;
+        chapter: number;
+        verse: number;
+      };
+    }>;
   };
   onOpenContributions: () => void;
   onOpenAddLink: () => void;
   isAuthenticated: boolean;
+  currentUserId?: string;
 }
+
+// Couleurs pour les badges confession
+const confessionColors = {
+  catholic: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  orthodox: 'bg-blue-100 text-blue-800 border-blue-300',
+  protestant: 'bg-purple-100 text-purple-800 border-purple-300',
+  anglican: 'bg-green-100 text-green-800 border-green-300',
+  other: 'bg-gray-100 text-gray-800 border-gray-300',
+};
+
+const confessionLabels = {
+  catholic: '🙏',
+  orthodox: '✝️',
+  protestant: '📖',
+  anglican: '⛪',
+  other: '❓',
+};
+
+// Logos f/t/p
+const subtypeBadges = {
+  figure: { icon: '🎭', letter: 'f', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  type: { icon: '⚏', letter: 't', color: 'bg-green-100 text-green-800 border-green-300' },
+  prophecy: { icon: '☀️', letter: 'p', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+};
 
 export function VerseCard({
   verseId,
@@ -66,6 +106,30 @@ export function VerseCard({
         </span>
 
         <div className="verse-card__actions flex items-center gap-2">
+          {/* Badges des sous-types de liens (f/t/p) */}
+          {contributions?.linkDetails && contributions.linkDetails.map((link) => {
+            if (!link.link_subtype) return null;
+            const badge = subtypeBadges[link.link_subtype as keyof typeof subtypeBadges];
+            if (!badge) return null;
+
+            return (
+              <span
+                key={link.id}
+                className={`px-2 py-1 rounded text-xs font-bold border ${badge.color}`}
+                title={`Type: ${link.link_subtype}`}
+              >
+                {badge.icon} {badge.letter}
+              </span>
+            );
+          })}
+
+          {/* Soleil si prophétie accomplie */}
+          {contributions?.linkDetails && contributions.linkDetails.some(link => link.is_prophecy) && (
+            <span className="px-2 py-1 rounded text-xs font-bold border bg-yellow-100 text-yellow-800 border-yellow-300" title="Prophétie accomplie">
+              ☀️
+            </span>
+          )}
+
           {/* Badge de contributions si existant */}
           {hasContributions && (
             <button
@@ -145,9 +209,28 @@ export function VerseCard({
 
       <p className="verse-card__text">"{text}"</p>
 
-      <div className="verse-card__meta">
-        <span className="badge badge--default">{translation}</span>
-      </div>
+      {/* Badges confession des auteurs de liens */}
+      {contributions?.linkDetails && contributions.linkDetails.length > 0 && (
+        <div className="verse-card__meta flex items-center gap-2 flex-wrap">
+          <span className="badge badge--default">{translation}</span>
+          {contributions.linkDetails.slice(0, 5).map((link) => {
+            const colorClass = confessionColors[link.author.confession as keyof typeof confessionColors] || confessionColors.other;
+            const label = confessionLabels[link.author.confession as keyof typeof confessionLabels] || confessionLabels.other;
+            return (
+              <span
+                key={link.id}
+                className={`px-2 py-0.5 rounded text-xs font-medium border ${colorClass}`}
+                title={`Par ${link.author.username || 'Anonyme'} (${link.author.confession})`}
+              >
+                {label}
+              </span>
+            );
+          })}
+          {contributions.linkDetails.length > 5 && (
+            <span className="text-xs text-slate-500">+{contributions.linkDetails.length - 5} autres</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

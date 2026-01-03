@@ -366,6 +366,26 @@ export async function searchBibleAction(query: string) {
   return { success: true, results: data };
 }
 
+/**
+ * Récupère les versets d'un chapitre spécifique
+ */
+export async function getVersesAction(bookId: string, chapter: number) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('bible_verses')
+    .select('*')
+    .eq('book_id', bookId)
+    .eq('chapter', chapter)
+    .order('verse', { ascending: true });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, verses: data };
+}
+
 export async function getArticleAction(slug: string) {
   const { createPublicClient } = await import('@/utils/supabase/server');
   const supabase = createPublicClient();
@@ -738,5 +758,413 @@ export async function getVerseContributionsAction(verseId: string) {
     wiki_links: wikiLinksWithArticles,
     annotations: annotations || [],
     external_sources: external_sources || [],
+  };
+}
+
+/**
+ * Modifie une annotation
+ */
+export async function updateAnnotationAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = CreateAnnotationSchema.safeParse({
+    verse_id: formData.get('annotation_id'),
+    content: formData.get('content'),
+    parent_id: null,
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { verse_id, content } = validatedFields.data;
+  const annotation_id = formData.get('annotation_id') as string;
+
+  // Vérifier que l'utilisateur est bien l'auteur
+  const { data: existingAnnotation } = await supabase
+    .from('verse_annotations')
+    .select('author_id')
+    .eq('id', annotation_id)
+    .single();
+
+  if (!existingAnnotation || existingAnnotation.author_id !== user.id) {
+    return { error: 'Non autorisé' };
+  }
+
+  // Mettre à jour l'annotation
+  const { error } = await supabase
+    .from('verse_annotations')
+    .update({ content, updated_at: new Date().toISOString() })
+    .eq('id', annotation_id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Supprime une annotation
+ */
+export async function deleteAnnotationAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const annotation_id = formData.get('annotation_id') as string;
+
+  // Vérifier que l'utilisateur est bien l'auteur
+  const { data: existingAnnotation } = await supabase
+    .from('verse_annotations')
+    .select('author_id')
+    .eq('id', annotation_id)
+    .single();
+
+  if (!existingAnnotation || existingAnnotation.author_id !== user.id) {
+    return { error: 'Non autorisé' };
+  }
+
+  // Supprimer l'annotation
+  const { error } = await supabase
+    .from('verse_annotations')
+    .delete()
+    .eq('id', annotation_id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Modifie un lien de verset
+ */
+export async function updateVerseLinkAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const link_id = formData.get('link_id') as string;
+  const description = formData.get('description') as string;
+  const link_subtype = formData.get('link_subtype') as string | null;
+  const is_prophecy = formData.get('is_prophecy') === 'true';
+
+  // Vérifier que l'utilisateur est bien l'auteur
+  const { data: existingLink } = await supabase
+    .from('verse_links')
+    .select('author_id')
+    .eq('id', link_id)
+    .single();
+
+  if (!existingLink || existingLink.author_id !== user.id) {
+    return { error: 'Non autorisé' };
+  }
+
+  // Mettre à jour le lien
+  const updateData: any = {};
+  if (description !== undefined) updateData.description = description;
+  if (link_subtype !== undefined) updateData.link_subtype = link_subtype;
+  if (is_prophecy !== undefined) updateData.is_prophecy = is_prophecy;
+  updateData.updated_at = new Date().toISOString();
+
+  const { error } = await supabase
+    .from('verse_links')
+    .update(updateData)
+    .eq('id', link_id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Supprime un lien de verset
+ */
+export async function deleteVerseLinkAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const link_id = formData.get('link_id') as string;
+
+  // Vérifier que l'utilisateur est bien l'auteur
+  const { data: existingLink } = await supabase
+    .from('verse_links')
+    .select('author_id')
+    .eq('id', link_id)
+    .single();
+
+  if (!existingLink || existingLink.author_id !== user.id) {
+    return { error: 'Non autorisé' };
+  }
+
+  // Supprimer le lien
+  const { error } = await supabase
+    .from('verse_links')
+    .delete()
+    .eq('id', link_id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+// ============================================================================
+// GAMIFICATION ACTIONS
+// ============================================================================
+
+const LikeContributionSchema = z.object({
+  contribution_type: z.enum(['link', 'annotation', 'external_source', 'wiki_article']),
+  contribution_id: z.string().uuid(),
+});
+
+export async function toggleLikeAction(
+  state: ActionResult & { liked?: boolean; new_count?: number } | null,
+  formData: FormData
+): Promise<ActionResult & { liked?: boolean; new_count?: number }> {
+  const supabase = await createClient();
+
+  // Vérifier l'authentification
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return { error: 'Non authentifié' };
+  }
+
+  // Valider les données
+  const validatedFields = LikeContributionSchema.safeParse({
+    contribution_type: formData.get('contribution_type'),
+    contribution_id: formData.get('contribution_id'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Données invalides' };
+  }
+
+  const { contribution_type, contribution_id } = validatedFields.data;
+
+  // Déterminer la table cible
+  const targetTable = contribution_type === 'link' ? 'verse_links' :
+                      contribution_type === 'annotation' ? 'verse_annotations' :
+                      contribution_type === 'external_source' ? 'verse_external_links' :
+                      'wiki_articles';
+
+  // Vérifier si l'utilisateur a déjà liké
+  const { data: existingLike } = await supabase
+    .from('contribution_likes')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('contribution_type', contribution_type)
+    .eq('contribution_id', contribution_id)
+    .single();
+
+  if (existingLike) {
+    // Unlike : supprimer le like et décrémenter le compteur
+    const { error: deleteError } = await supabase
+      .from('contribution_likes')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('contribution_type', contribution_type)
+      .eq('contribution_id', contribution_id);
+
+    if (deleteError) {
+      return { error: deleteError.message };
+    }
+
+    // Décrémenter le compteur de likes
+    const { data: currentContrib } = await supabase
+      .from(targetTable)
+      .select('likes_count')
+      .eq('id', contribution_id)
+      .single();
+
+    const newCount = Math.max(0, (currentContrib?.likes_count || 0) - 1);
+
+    const { error: updateError } = await supabase
+      .from(targetTable)
+      .update({ likes_count: newCount })
+      .eq('id', contribution_id);
+
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    // Revalidation pour mettre à jour l'UI
+    if (contribution_type === 'link' || contribution_type === 'annotation') {
+      revalidatePath('/bible/[book]/[chapter]');
+    }
+
+    return { success: true, liked: false, new_count: newCount };
+  } else {
+    // Like : insérer le like et incrémenter le compteur
+    const { error: insertError } = await supabase
+      .from('contribution_likes')
+      .insert({
+        user_id: user.id,
+        contribution_type: contribution_type,
+        contribution_id: contribution_id,
+      });
+
+    if (insertError) {
+      return { error: insertError.message };
+    }
+
+    // Incrémenter le compteur de likes
+    const { data: currentContrib } = await supabase
+      .from(targetTable)
+      .select('likes_count')
+      .eq('id', contribution_id)
+      .single();
+
+    const newCount = (currentContrib?.likes_count || 0) + 1;
+
+    const { error: updateError } = await supabase
+      .from(targetTable)
+      .update({ likes_count: newCount })
+      .eq('id', contribution_id);
+
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    // Revalidation pour mettre à jour l'UI
+    if (contribution_type === 'link' || contribution_type === 'annotation') {
+      revalidatePath('/bible/[book]/[chapter]');
+    }
+
+    return { success: true, liked: true, new_count: newCount };
+  }
+}
+
+export async function getUserDashboardAction(userId: string) {
+  const supabase = await createClient();
+
+  // Récupérer le score de l'utilisateur
+  const { data: score, error: scoreError } = await supabase
+    .from('user_scores')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (scoreError && scoreError.code !== 'PGRST116') {
+    return { error: scoreError.message };
+  }
+
+  // Récupérer les badges de l'utilisateur
+  const { data: badges, error: badgesError } = await supabase
+    .from('user_badges')
+    .select('*')
+    .eq('user_id', userId)
+    .order('earned_at', { ascending: false });
+
+  if (badgesError) {
+    return { error: badgesError.message };
+  }
+
+  // Compter les contributions par type
+  const { data: links } = await supabase
+    .from('verse_links')
+    .select('id')
+    .eq('author_id', userId);
+
+  const { data: annotations } = await supabase
+    .from('verse_annotations')
+    .select('id')
+    .eq('author_id', userId);
+
+  const { data: externalSources } = await supabase
+    .from('verse_external_links')
+    .select('id')
+    .eq('author_id', userId);
+
+  const { data: wikiArticles } = await supabase
+    .from('wiki_articles')
+    .select('id')
+    .eq('author_id', userId);
+
+  return {
+    success: true,
+    score: score || {
+      total_hearts: 0,
+      total_contributions: 0,
+      total_likes_received: 0,
+      rank: null,
+    },
+    badges: badges || [],
+    breakdown: {
+      links: links?.length || 0,
+      annotations: annotations?.length || 0,
+      external_sources: externalSources?.length || 0,
+      wiki_articles: wikiArticles?.length || 0,
+    },
+  };
+}
+
+export async function getLeaderboardAction(limit: number = 100) {
+  const supabase = await createClient();
+
+  const { data: leaderboard, error } = await supabase
+    .from('user_scores')
+    .select(`
+      *,
+      user_profiles!inner(
+        username
+      )
+    `)
+    .order('total_hearts', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  // Transformer les données pour avoir le format attendu
+  const transformedLeaderboard = leaderboard?.map(entry => ({
+    ...entry,
+    user: {
+      raw_user_meta_data: {
+        username: (entry as any).user_profiles?.username || 'Anonyme'
+      }
+    }
+  })) || [];
+
+  return {
+    success: true,
+    leaderboard: transformedLeaderboard,
   };
 }

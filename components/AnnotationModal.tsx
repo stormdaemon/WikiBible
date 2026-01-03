@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useActionState } from 'react';
 import { createAnnotationAction } from '@/app/actions';
+import { LikeButton } from './LikeButton';
 
 interface VerseLink {
   id: string;
   link_type: string;
   description: string | null;
+  likes_count?: number;
   bible_verses: {
     id: string;
     verse: number;
@@ -36,6 +38,7 @@ interface Annotation {
   content: string;
   created_at: string;
   author_id: string;
+  likes_count?: number;
   replies?: Array<{
     id: string;
     content: string;
@@ -275,9 +278,18 @@ function LinksTab({ links }: { links: VerseLink[] }) {
             <h3 className="font-semibold text-primary text-lg">
               {link.bible_verses.bible_books.name} {link.bible_verses.chapter}:{link.bible_verses.verse}
             </h3>
-            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${linkTypeColors[link.link_type]}`}>
-              {linkTypeLabels[link.link_type] || link.link_type}
-            </span>
+            <div className="flex items-center gap-2">
+              <LikeButton
+                contributionType="link"
+                contributionId={link.id}
+                initialLiked={false}
+                initialCount={link.likes_count || 0}
+                size="sm"
+              />
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${linkTypeColors[link.link_type]}`}>
+                {linkTypeLabels[link.link_type] || link.link_type}
+              </span>
+            </div>
           </div>
           {link.description && (
             <p className="text-slate-600 mt-2">{link.description}</p>
@@ -421,13 +433,22 @@ function AnnotationsTab({
               </svg>
               Anonyme
             </span>
-            <span className="text-xs text-slate-500">
-              {new Date(annotation.created_at).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </span>
+            <div className="flex items-center gap-2">
+              <LikeButton
+                contributionType="annotation"
+                contributionId={annotation.id}
+                initialLiked={false}
+                initialCount={annotation.likes_count || 0}
+                size="sm"
+              />
+              <span className="text-xs text-slate-500">
+                {new Date(annotation.created_at).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </span>
+            </div>
           </div>
           <p className="text-slate-700">{annotation.content}</p>
 

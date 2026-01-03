@@ -24,7 +24,16 @@
       "WebSearch",
       "Bash(test:*)",
       "Bash(cat:*)",
-      "Bash(split:*)"
+      "Bash(split:*)",
+      "Bash(git push:*)",
+      "Bash(jq:*)",
+      "Bash(xargs:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(pip install:*)",
+      "Bash(cd:*)",
+      "Bash(python:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,4 +1,10 @@
+'use client';
+
 import Link from 'next/link';
+import { ApocryphaVerseCard } from './ApocryphaVerseCard';
+import { useState } from 'react';
+import { AddLinkModal } from './AddLinkModal';
+import { AnnotationModal } from './AnnotationModal';
 
 interface ApocryphaContentProps {
   book: {
@@ -13,76 +19,97 @@ interface ApocryphaContentProps {
     text_original: string;
     text_fr: string;
   }>>;
+  isAuthenticated?: boolean;
 }
 
-export function ApocryphaContent({ book, chapters }: ApocryphaContentProps) {
+export function ApocryphaContent({ book, chapters, isAuthenticated = false }: ApocryphaContentProps) {
+  const [selectedVerse, setSelectedVerse] = useState<string | null>(null);
+  const [showAddLinkModal, setShowAddLinkModal] = useState(false);
+  const [showContributionsModal, setShowContributionsModal] = useState(false);
+  const [contributions, setContributions] = useState<any>(null);
+
+  const handleOpenAddLink = (verseId: string) => {
+    setSelectedVerse(verseId);
+    setShowAddLinkModal(true);
+  };
+
+  const handleCloseAddLink = () => {
+    setShowAddLinkModal(false);
+    setSelectedVerse(null);
+  };
+
+  const handleOpenContributions = async (verseId: string) => {
+    setSelectedVerse(verseId);
+    setShowContributionsModal(true);
+
+    // Charger les contributions (placeholder pour l'instant)
+    // TODO: Implement getApocryphaContributionsAction
+    setContributions({
+      links: [],
+      annotations: [],
+      external_sources: [],
+    });
+  };
+
+  const handleCloseContributions = () => {
+    setShowContributionsModal(false);
+    setSelectedVerse(null);
+    setContributions(null);
+  };
+
   return (
-    <div className="apocrypha-content">
-      {Object.entries(chapters).map(([chapterNum, verses]) => (
-        <section
-          key={chapterNum}
-          id={`chapter-${chapterNum}`}
-          className="apocrypha-content__chapter apocrypha-content__chapter--mb-12 mb-12"
-        >
-          <h2 className="apocrypha-content__chapter-title apocrypha-content__chapter-title--text-2xl text-2xl font-serif text-primary mb-6 pb-2 border-b border-border">
-            Chapitre {chapterNum}
-          </h2>
+    <>
+      <div>
+        {Object.entries(chapters).map(([chapterNum, verses]) => (
+          <section
+            key={chapterNum}
+            id={`chapter-${chapterNum}`}
+            className="mb-12"
+          >
+            <h2 className="text-2xl font-serif text-primary mb-6 pb-2 border-b border-border">
+              Chapitre {chapterNum}
+            </h2>
 
-          <div className="apocrypha-content__verses space-y-6">
-            {verses.map((verse) => (
-              <article
-                key={verse.id}
-                id={`verse-${verse.verse}`}
-                className="apocrypha-content__verse apocrypha-content__verse--bg-white bg-white p-6 rounded-lg border border-border hover:border-accent transition-colors"
-              >
-                {/* Verse Number */}
-                <div className="apocrypha-content__verse-header flex items-center gap-3 mb-3">
-                  <span className="apocrypha-content__verse-num apocrypha-content__verse-num--bg-accent bg-accent text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {verse.verse}
-                  </span>
-                  <Link
-                    href={`/apocrypha/${book.slug}#${verse.chapter}:${verse.verse}`}
-                    className="apocrypha-content__verse-link apocrypha-content__verse-link--text-xs text-xs text-slate-400 hover:text-accent"
-                  >
-                    🔗 Lien permanent
-                  </Link>
-                </div>
+            <div className="space-y-6">
+              {verses.map((verse) => (
+                <ApocryphaVerseCard
+                  key={verse.id}
+                  verseId={verse.id}
+                  bookName={book.name_fr}
+                  chapter={verse.chapter}
+                  verseNumber={verse.verse}
+                  textOriginal={verse.text_original}
+                  textFr={verse.text_fr}
+                  onOpenAddLink={() => handleOpenAddLink(verse.id)}
+                  onOpenContributions={() => handleOpenContributions(verse.id)}
+                  isAuthenticated={isAuthenticated}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
 
-                {/* French Text */}
-                {verse.text_fr && (
-                  <div className="apocrypha-content__text-fr apocrypha-content__text-fr--mb-4 mb-4">
-                    <p className="apocrypha-content__text apocrypha-content__text--text-lg text-lg text-slate-800 leading-relaxed">
-                      {verse.text_fr}
-                    </p>
-                  </div>
-                )}
+      {/* Modal Ajouter un lien */}
+      {selectedVerse && showAddLinkModal && (
+        <AddLinkModal
+          verseId={selectedVerse}
+          isOpen={showAddLinkModal}
+          onClose={handleCloseAddLink}
+        />
+      )}
 
-                {/* Original Text */}
-                <details className="apocrypha-content__original apocrypha-content__original--mt-4 mt-4">
-                  <summary className="apocrypha-content__original-toggle apocrypha-content__original-toggle--cursor-pointer cursor-pointer text-sm text-slate-500 hover:text-slate-700">
-                    Voir le texte original ({book.slug})
-                  </summary>
-                  <div className="apocrypha-content__original-text apocrypha-content__original-text--mt-3 mt-3 p-4 bg-slate-50 rounded text-slate-600 italic">
-                    <p className="text-sm leading-relaxed">
-                      {verse.text_original}
-                    </p>
-                  </div>
-                </details>
-
-                {/* Actions */}
-                <div className="apocrypha-content__actions apocrypha-content__actions--flex apocrypha-content__actions--flex-row flex gap-2 mt-4 pt-4 border-t border-slate-100">
-                  <button className="apocrypha-content__btn apocrypha-content__btn--text-sm text-sm px-3 py-1 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
-                    📌 Annoter
-                  </button>
-                  <button className="apocrypha-content__btn apocrypha-content__btn--text-sm text-sm px-3 py-1 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
-                    📤 Partager
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
+      {/* Modal Annotations/Contributions */}
+      {selectedVerse && showContributionsModal && (
+        <AnnotationModal
+          verseId={selectedVerse}
+          verseReference={`${book.name_fr} (Verset)`}
+          contributions={contributions || { links: [], annotations: [], external_sources: [] }}
+          isOpen={showContributionsModal}
+          onClose={handleCloseContributions}
+        />
+      )}
+    </>
   );
 }
+

@@ -29,24 +29,24 @@ export function ApocryphaFilter({ onFilterChange }: ApocryphaFilterProps) {
   };
 
   return (
-    <div className="apocrypha-filter apocrypha-filter--flex flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4">
       {/* Search */}
-      <div className="apocrypha-filter__search apocrypha-filter__search--flex-1 flex-1">
+      <div className="flex-1">
         <input
           type="text"
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Rechercher un texte apocryphe..."
-          className="apocrypha-filter__input apocrypha-filter__input--w-full w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+          className="form__input"
         />
       </div>
 
       {/* Category Filter */}
-      <div className="apocrypha-filter__category">
+      <div>
         <select
           value={category}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="apocrypha-filter__select apocrypha-filter__select--px-4 px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-white"
+          className="form__input"
         >
           {categories.map((cat) => (
             <option key={cat.value} value={cat.value}>

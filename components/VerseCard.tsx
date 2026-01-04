@@ -95,17 +95,15 @@ export function VerseCard({
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
   return (
-    <div
-      className={`verse-card transition-all hover:shadow-lg ${
-        hasContributions ? 'verse-card--highlight' : 'verse-card--accent'
-      }`}
-    >
-      <div className="verse-card__header">
-        <span className="verse-card__reference">
-          {bookName} {chapter}:{verseNumber}
-        </span>
+    <div className="bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg">
+      {/* Header avec référence et actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        {/* Référence du verset avec badges */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="font-serif text-lg font-bold text-primary">
+            {bookName} {chapter}:{verseNumber}
+          </span>
 
-        <div className="verse-card__actions flex items-center gap-2">
           {/* Badges des sous-types de liens (f/t/p) */}
           {contributions?.linkDetails && contributions.linkDetails.map((link) => {
             if (!link.link_subtype) return null;
@@ -130,6 +128,12 @@ export function VerseCard({
             </span>
           )}
 
+          {/* Traduction */}
+          <span className="badge badge--default">{translation}</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Badge de contributions si existant */}
           {hasContributions && (
             <button
@@ -207,12 +211,14 @@ export function VerseCard({
         </div>
       </div>
 
-      <p className="verse-card__text">"{text}"</p>
+      {/* Texte du verset */}
+      <p className="text-lg text-slate-800 leading-relaxed mb-4">
+        "{text}"
+      </p>
 
       {/* Badges confession des auteurs de liens */}
       {contributions?.linkDetails && contributions.linkDetails.length > 0 && (
-        <div className="verse-card__meta flex items-center gap-2 flex-wrap">
-          <span className="badge badge--default">{translation}</span>
+        <div className="flex items-center gap-2 flex-wrap">
           {contributions.linkDetails.slice(0, 5).map((link) => {
             const colorClass = confessionColors[link.author.confession as keyof typeof confessionColors] || confessionColors.other;
             const label = confessionLabels[link.author.confession as keyof typeof confessionLabels] || confessionLabels.other;

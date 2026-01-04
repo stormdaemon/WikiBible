@@ -39,58 +39,56 @@ export default async function ApocryphaBookPage({ params }: ApocryphaBookPagePro
     return acc;
   }, {} as Record<number, typeof verses>);
 
+  // Vérifier l'authentification
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAuthenticated = !!user;
+
   return (
-    <main className="apocrypha-book">
+    <main className="min-h-screen">
       {/* Header */}
-      <div className="apocrypha-book__header bg-slate-50 border-b border-border">
-        <div className="apocrypha-book__container container px-6 py-8">
-          {/* Breadcrumb */}
-          <nav className="apocrypha-book__breadcrumb breadcrumb mb-4">
-            <ol className="breadcrumb__list inline-flex items-center space-x-1 md:space-x-3 text-sm">
-              <li><Link href="/apocrypha" className="breadcrumb__link text-secondary hover:text-primary">Apocryphes</Link></li>
-              <li><span className="breadcrumb__separator text-slate-300">/</span></li>
-              <li><span className="breadcrumb__current text-accent font-medium">{book.name_fr}</span></li>
-            </ol>
-          </nav>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Breadcrumb */}
+        <nav className="flex mb-8 text-sm">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li><Link href="/apocrypha" className="text-secondary hover:text-primary">Apocryphes</Link></li>
+            <li><span className="text-slate-300">/</span></li>
+            <li><span className="text-accent font-medium">{book.name_fr}</span></li>
+          </ol>
+        </nav>
 
-          <h1 className="apocrypha-book__title text-4xl font-serif text-primary mb-2">
-            {book.name_fr}
-          </h1>
+        {/* Title */}
+        <h1 className="text-4xl font-serif text-primary mb-2">
+          {book.name_fr}
+        </h1>
 
-          <p className="apocrypha-book__subtitle text-lg text-slate-600 mb-4">
-            {book.name}
+        <p className="text-lg text-slate-600 mb-4">
+          {book.name}
+        </p>
+
+        {book.description_fr && (
+          <p className="text-slate-700 mb-8">
+            {book.description_fr}
           </p>
+        )}
 
-          {book.description_fr && (
-            <p className="apocrypha-book__description text-slate-700">
-              {book.description_fr}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Chapter Navigation */}
-      <div className="apocrypha-book__nav bg-white border-b border-border sticky top-0 z-10">
-        <div className="apocrypha-book__container container px-6 py-4">
-          <div className="apocrypha-book__chapters-nav flex flex-wrap gap-2">
+        {/* Chapter Navigation */}
+        <div className="mb-8 pb-6 border-b border-border">
+          <h3 className="text-lg font-bold text-primary mb-4">Chapitres</h3>
+          <div className="flex flex-wrap gap-2">
             {Object.keys(chapters).map((ch) => (
               <Link
                 key={ch}
                 href={`#chapter-${ch}`}
-                className="apocrypha-book__chapter-link apocrypha-book__chapter-link--px-3 px-3 py-2 rounded text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className="px-3 py-2 rounded text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Chapitre {ch}
               </Link>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="apocrypha-book__content py-12">
-        <div className="apocrypha-book__container container px-6">
-          <ApocryphaContent book={book} chapters={chapters} />
-        </div>
+        {/* Content */}
+        <ApocryphaContent book={book} chapters={chapters} isAuthenticated={isAuthenticated} />
       </div>
     </main>
   );

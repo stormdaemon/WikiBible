@@ -35,6 +35,7 @@ export default function Header({ user }: { user: User | null }) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             <Link href="/bible" className="text-secondary hover:text-primary font-medium">Bible</Link>
+            <Link href="/apocrypha" className="text-secondary hover:text-primary font-medium">Apocryphes</Link>
             <Link href="/wiki" className="text-secondary hover:text-primary font-medium">Wiki</Link>
 
             {user ? (
@@ -94,6 +95,9 @@ export default function Header({ user }: { user: User | null }) {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link href="/bible" className="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:text-primary hover:bg-slate-50" onClick={() => setIsOpen(false)}>
               Bible
+            </Link>
+            <Link href="/apocrypha" className="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:text-primary hover:bg-slate-50" onClick={() => setIsOpen(false)}>
+              Apocryphes
             </Link>
             <Link href="/wiki" className="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:text-primary hover:bg-slate-50" onClick={() => setIsOpen(false)}>
               Wiki

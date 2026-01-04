@@ -233,11 +233,18 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
                     </label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
-                        <input type="radio" name="link_subtype" value="figure" className="w-4 h-4 text-accent" required />
+                        <input type="radio" name="link_subtype" value="parallel" className="w-4 h-4 text-accent" defaultChecked />
+                        <span className="text-2xl">🔗</span>
+                        <div className="flex-1">
+                          <span className="font-medium">Parallèle</span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="radio" name="link_subtype" value="figure" className="w-4 h-4 text-accent" />
                         <span className="text-2xl">🎭</span>
                         <div className="flex-1">
                           <span className="font-medium">Figure</span>
-                          <p className="text-xs text-slate-600">Préfiguration (foi, type, figure)</p>
                         </div>
                       </label>
 
@@ -246,7 +253,6 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
                         <span className="text-2xl">⚏</span>
                         <div className="flex-1">
                           <span className="font-medium">Type</span>
-                          <p className="text-xs text-slate-600">Antitype (accomplissement)</p>
                         </div>
                       </label>
 
@@ -255,7 +261,6 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
                         <span className="text-2xl">☀️</span>
                         <div className="flex-1">
                           <span className="font-medium">Prophétie</span>
-                          <p className="text-xs text-slate-600">Prophétie biblique</p>
                         </div>
                       </label>
                     </div>

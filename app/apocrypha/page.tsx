@@ -69,7 +69,7 @@ export default async function ApocryphaPage() {
                 {getCategoryLabel(category)}
               </h2>
               <span className="badge badge--accent">
-                {categoryBooks.length} texte{categoryBooks.length > 1 ? 's' : ''}
+                {(categoryBooks as ApocryphaBook[]).length} texte{(categoryBooks as ApocryphaBook[]).length > 1 ? 's' : ''}
               </span>
             </div>
             <ApocryphaGrid books={categoryBooks as ApocryphaBook[]} />

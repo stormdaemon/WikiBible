@@ -15,7 +15,7 @@
 
 # production
 /build
-/scripts
+
 
 # misc
 .DS_Store
@@ -38,7 +38,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Import scripts and temporary files
-/scripts
+
 *.json
 !package.json
 !package-lock.json

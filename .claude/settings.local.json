@@ -33,7 +33,9 @@
       "Bash(pip install:*)",
       "Bash(cd:*)",
       "Bash(python:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(timeout:*)",
+      "mcp__supabase__get_logs"
     ],
     "deny": [],
     "ask": []

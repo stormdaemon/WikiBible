@@ -90,6 +90,28 @@ export default function RegisterPage() {
               />
             </div>
 
+            <div className="form__group">
+              <label htmlFor="confession" className="form__label">
+                Confession religieuse
+              </label>
+              <select
+                id="confession"
+                name="confession"
+                required
+                className="form__input"
+              >
+                <option value="">Sélectionnez votre confession</option>
+                <option value="catholic">🙏 Catholique</option>
+                <option value="orthodox">✝️ Orthodoxe</option>
+                <option value="protestant">📖 Protestant</option>
+                <option value="anglican">⛪ Anglican</option>
+                <option value="other">❓ Autre</option>
+              </select>
+              <p className="text-xs text-secondary mt-1">
+                Cela nous permet de mieux comprendre les différentes traditions chrétiennes
+              </p>
+            </div>
+
             {state?.error && (
               <div className="alert alert--error" role="alert">
                 <svg className="alert__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">

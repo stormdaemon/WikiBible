@@ -24,6 +24,7 @@ const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(2),
+  confession: z.enum(['catholic', 'orthodox', 'protestant', 'anglican', 'other']),
 });
 
 const CreateArticleSchema = z.object({
@@ -81,13 +82,14 @@ export async function registerAction(state: ActionResult | null, formData: FormD
     email: formData.get('email'),
     password: formData.get('password'),
     name: formData.get('name'),
+    confession: formData.get('confession'),
   });
 
   if (!validatedFields.success) {
     return { error: 'Invalid fields' };
   }
 
-  const { email, password, name } = validatedFields.data;
+  const { email, password, name, confession } = validatedFields.data;
 
   const supabase = await createClient();
 
@@ -95,7 +97,10 @@ export async function registerAction(state: ActionResult | null, formData: FormD
     email,
     password,
     options: {
-      data: { name },
+      data: {
+        name,
+        confession,
+      },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://wikibibledev.netlify.app'}/auth/callback`,
     },
   });

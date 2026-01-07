@@ -39,10 +39,18 @@ interface Annotation {
   created_at: string;
   author_id: string;
   likes_count?: number;
+  author?: {
+    id: string;
+    username: string | null;
+  };
   replies?: Array<{
     id: string;
     content: string;
     created_at: string;
+    author?: {
+      id: string;
+      username: string | null;
+    };
   }>;
 }
 
@@ -421,47 +429,11 @@ function AnnotationsTab({
       <AnnotationForm verseId={verseId} formAction={formAction} pending={pending} />
 
       {annotations.map((annotation) => (
-        <div
+        <AnnotationItem
           key={annotation.id}
-          className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-start justify-between mb-2">
-            <span className="font-medium text-sm text-primary flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Anonyme
-            </span>
-            <div className="flex items-center gap-2">
-              <LikeButton
-                contributionType="annotation"
-                contributionId={annotation.id}
-                initialLiked={false}
-                initialCount={annotation.likes_count || 0}
-                size="sm"
-              />
-              <span className="text-xs text-slate-500">
-                {new Date(annotation.created_at).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
-          </div>
-          <p className="text-slate-700">{annotation.content}</p>
-
-          {annotation.replies && annotation.replies.length > 0 && (
-            <div className="mt-3 ml-4 space-y-2 border-l-2 border-slate-300 pl-3">
-              {annotation.replies.map((reply) => (
-                <div key={reply.id} className="text-sm bg-white/50 p-2 rounded-lg">
-                  <p className="text-slate-600">{reply.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+          annotation={annotation}
+          verseId={verseId}
+        />
       ))}
     </div>
   );
@@ -471,17 +443,22 @@ function AnnotationForm({
   verseId,
   formAction,
   pending,
+  parentId = null,
+  placeholder = "Ajoutez votre annotation...",
 }: {
   verseId: string;
   formAction: any;
   pending: boolean;
+  parentId?: string | null;
+  placeholder?: string;
 }) {
   return (
     <form action={formAction} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
       <input type="hidden" name="verse_id" value={verseId} />
+      {parentId && <input type="hidden" name="parent_id" value={parentId} />}
       <textarea
         name="content"
-        placeholder="Ajoutez votre annotation..."
+        placeholder={placeholder}
         className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none"
         rows={3}
         disabled={pending}
@@ -504,10 +481,109 @@ function AnnotationForm({
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            Ajouter une annotation
+            {parentId ? 'Répondre' : 'Ajouter une annotation'}
           </>
         )}
       </button>
     </form>
+  );
+}
+
+interface AnnotationItemProps {
+  annotation: Annotation;
+  verseId: string;
+  depth?: number;
+}
+
+function AnnotationItem({ annotation, verseId, depth = 0 }: AnnotationItemProps) {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [state, formAction, pending] = useActionState(createAnnotationAction, null);
+  const maxDepth = 3; // Limite de profondeur pour les réponses
+
+  const handleReplySuccess = () => {
+    if (state?.success) {
+      setShowReplyForm(false);
+    }
+  };
+
+  // Effet pour fermer le formulaire après succès
+  useEffect(() => {
+    handleReplySuccess();
+  }, [state]);
+
+  return (
+    <div
+      className={`p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:shadow-md transition-shadow ${depth > 0 ? 'ml-6 mt-2 bg-white/70' : ''}`}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <span className="font-medium text-sm text-primary flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          {annotation.author?.username || 'Anonyme'}
+        </span>
+        <div className="flex items-center gap-2">
+          <LikeButton
+            contributionType="annotation"
+            contributionId={annotation.id}
+            initialLiked={false}
+            initialCount={annotation.likes_count || 0}
+            size="sm"
+          />
+          <span className="text-xs text-slate-500">
+            {new Date(annotation.created_at).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </span>
+        </div>
+      </div>
+      <p className="text-slate-700">{annotation.content}</p>
+
+      {/* Bouton Répondre */}
+      {depth < maxDepth && (
+        <button
+          onClick={() => setShowReplyForm(!showReplyForm)}
+          className="mt-2 text-sm text-accent hover:text-accent/80 flex items-center gap-1 transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          {showReplyForm ? 'Annuler' : 'Répondre'}
+        </button>
+      )}
+
+      {/* Formulaire de réponse */}
+      {showReplyForm && (
+        <div className="mt-3">
+          <AnnotationForm
+            verseId={verseId}
+            formAction={formAction}
+            pending={pending}
+            parentId={annotation.id}
+            placeholder="Répondez à cette annotation..."
+          />
+        </div>
+      )}
+
+      {/* Affichage des réponses imbriquées */}
+      {annotation.replies && annotation.replies.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {annotation.replies.map((reply) => (
+            <AnnotationItem
+              key={reply.id}
+              annotation={{
+                ...reply,
+                author_id: reply.author?.id || '',
+              }}
+              verseId={verseId}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

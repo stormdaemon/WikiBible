@@ -512,7 +512,7 @@ async function findWikiArticle(title: string) {
 }
 
 /**
- * Crée un lien depuis un verset
+ * Crée un lien depuis un verset (avec miroir automatique pour les liens bibliques)
  */
 export async function createVerseLinkAction(
   state: ActionResult | null,
@@ -566,8 +566,25 @@ export async function createVerseLinkAction(
     // Sinon target_verse_id reste null (référence textuelle libre)
   }
 
-  // Créer le lien avec la référence textuelle et la confession automatique
-  const { error } = await supabase
+  // Récupérer les données du verset source pour le miroir
+  const { data: sourceVerseData } = await supabase
+    .from('bible_verses')
+    .select(`
+      id,
+      verse,
+      chapter,
+      bible_books!inner(
+        name
+      )
+    `)
+    .eq('id', source_verse_id)
+    .single();
+
+  // TypeScript infère mal le type, on cast correctement
+  const sourceVerse = sourceVerseData as any;
+
+  // Créer le lien original avec la référence textuelle et la confession automatique
+  const { data: createdLink, error: insertError } = await supabase
     .from('verse_links')
     .insert({
       source_verse_id,
@@ -577,10 +594,43 @@ export async function createVerseLinkAction(
       description,
       target_reference: target_verse, // stocker la référence textuelle
       confession: userConfession, // confession automatique depuis le profil
-    });
+    })
+    .select()
+    .single();
 
-  if (error) {
-    return { error: error.message };
+  if (insertError) {
+    return { error: insertError.message };
+  }
+
+  // Miroir automatique : créer le lien inverse SEULEMENT pour les liens bibliques
+  // (pas pour wiki ni pour les références textuelles libres)
+  if (target_verse_id && link_type !== 'wiki' && sourceVerse) {
+    const sourceReference = `${sourceVerse.bible_books.name} ${sourceVerse.chapter}:${sourceVerse.verse}`;
+
+    // Créer le lien inverse
+    const { error: mirrorError } = await supabase
+      .from('verse_links')
+      .insert({
+        source_verse_id: target_verse_id, // Le verset cible devient la source
+        target_verse_id: source_verse_id, // La source originale devient la cible
+        link_type,
+        author_id: user.id,
+        description: `↩️ ${description || 'Renvoi réciproque'}`, // Ajouter une flèche pour indiquer le miroir
+        target_reference: sourceReference, // La référence du verset source original
+        confession: userConfession,
+        mirror_link_id: createdLink.id, // Lien vers le lien original
+      });
+
+    if (mirrorError) {
+      console.error('Erreur lors de la création du miroir:', mirrorError);
+      // On ne fail pas toute l'opération si le miroir échoue
+    }
+
+    // Mettre à jour le lien original avec le miroir_id
+    await supabase
+      .from('verse_links')
+      .update({ mirror_link_id: createdLink.id }) // Auto-référence temporaire
+      .eq('id', createdLink.id);
   }
 
   revalidatePath('/bible/[book]/[chapter]');
@@ -745,9 +795,37 @@ export async function getVerseContributionsAction(verseId: string) {
   // Récupérer les annotations principales (pas les réponses)
   const { data: annotations } = await supabase
     .from('verse_annotations')
-    .select('*')
+    .select(`
+      *,
+      author:user_profiles!verse_annotations_author_id_fkey(
+        id,
+        username
+      )
+    `)
     .eq('verse_id', verseId)
     .is('parent_id', null);
+
+  // Pour chaque annotation, récupérer ses réponses avec leurs auteurs
+  const annotationsWithReplies = await Promise.all(
+    (annotations || []).map(async (annotation) => {
+      const { data: replies } = await supabase
+        .from('verse_annotations')
+        .select(`
+          *,
+          author:user_profiles!verse_annotations_author_id_fkey(
+            id,
+            username
+          )
+        `)
+        .eq('parent_id', annotation.id)
+        .order('created_at', { ascending: true });
+
+      return {
+        ...annotation,
+        replies: replies || [],
+      };
+    })
+  );
 
   // Récupérer les sources externes liées
   const { data: external_sources } = await supabase
@@ -761,13 +839,13 @@ export async function getVerseContributionsAction(verseId: string) {
   return {
     links: bibleLinks,
     wiki_links: wikiLinksWithArticles,
-    annotations: annotations || [],
+    annotations: annotationsWithReplies,
     external_sources: external_sources || [],
   };
 }
 
 /**
- * Modifie une annotation
+ * Modifie une annotation (avec historique des modifications)
  */
 export async function updateAnnotationAction(
   state: ActionResult | null,
@@ -796,12 +874,30 @@ export async function updateAnnotationAction(
   // Vérifier que l'utilisateur est bien l'auteur
   const { data: existingAnnotation } = await supabase
     .from('verse_annotations')
-    .select('author_id')
+    .select('author_id, content')
     .eq('id', annotation_id)
     .single();
 
   if (!existingAnnotation || existingAnnotation.author_id !== user.id) {
     return { error: 'Non autorisé' };
+  }
+
+  // Sauvegarder l'ancien contenu avant la modification
+  const oldContent = existingAnnotation.content;
+
+  // Enregistrer l'historique de la modification
+  const { error: historyError } = await supabase
+    .from('annotation_edits')
+    .insert({
+      annotation_id,
+      old_content: oldContent,
+      new_content: content,
+      edited_by: user.id,
+    });
+
+  if (historyError) {
+    console.error("Erreur lors de l'enregistrement de l'historique:", historyError);
+    // On ne bloque pas la modification si l'historique échoue
   }
 
   // Mettre à jour l'annotation

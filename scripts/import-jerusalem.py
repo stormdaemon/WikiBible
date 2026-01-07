@@ -196,18 +196,25 @@ def parse_pdf_text(pdf_path: str) -> List[Tuple[str, int, int, str]]:
                     current_chapter = int(line)
                     continue
 
-                # Pattern pour verset: "1 Texte du verset..." ou "1. Texte..."
-                verse_match = re.match(r'^(\d+)[\.\s]\s*(.+)$', line)
-                if verse_match and current_book and current_chapter:
-                    verse_num = int(verse_match.group(1))
-                    verse_text = verse_match.group(2).strip()
+                # Pattern pour verset: "Genèse 3, 17 A l'homme, il dit..."
+                verse_match = re.match(r'^([\w\s\'\-]+?)\s+(\d+),\s+(\d+)\s+(.+)$', line)
+                if verse_match:
+                    book_match = verse_match.group(1).strip()
+                    chapter_num = int(verse_match.group(2))
+                    verse_num = int(verse_match.group(3))
+                    verse_text = verse_match.group(4).strip()
 
-                    # Nettoyer le texte (enlever les notes de bas de page, etc.)
-                    verse_text = re.sub(r'\s*\d+\s*$', '', verse_text)  # Numéro en fin de ligne
-                    verse_text = re.sub(r'\s+', ' ', verse_text)  # Espaces multiples
+                    # Vérifier que le livre correspond
+                    if book_match in BOOK_MAPPING:
+                        current_book = book_match
+                        current_chapter = chapter_num
 
-                    if verse_text:
-                        verses.append((current_book, current_chapter, verse_num, verse_text))
+                        # Nettoyer le texte
+                        verse_text = re.sub(r'\s+', ' ', verse_text)  # Espaces multiples
+                        verse_text = verse_text[:500]  # Limiter la longueur si nécessaire
+
+                        if verse_text:
+                            verses.append((current_book, current_chapter, verse_num, verse_text))
 
     print(f"\n✓ {len(verses)} versets extraits")
     return verses
@@ -219,11 +226,8 @@ def insert_verses(verses: List[Tuple[str, int, int, str]], books: List[Dict]) ->
     # Créer un mapping nom -> ID de livre
     book_id_map = {}
     for book in books:
-        # Chercher dans les deux sens (FR -> EN et EN -> FR)
-        for fr_name, en_name in BOOK_MAPPING.items():
-            if book['name'] == en_name or book.get('name_fr') == fr_name:
-                book_id_map[fr_name] = book['id']
-                break
+        # Utiliser directement le nom FR de la DB comme clé
+        book_id_map[book['name']] = book['id']
 
     # Préparer les données en lots
     batch_size = 100
@@ -246,7 +250,7 @@ def insert_verses(verses: List[Tuple[str, int, int, str]], books: List[Dict]) ->
                 'verse': verse_num,
                 'text': text,
                 'translation_id': 'jerusalem',
-                'book_slug': BOOK_MAPPING.get(book_name, '').lower().replace(' ', '-')
+                'book_slug': book_name.lower().replace(' ', '-').replace('é', 'e').replace('è', 'e').replace('à', 'a').replace('ù', 'u').replace('ô', 'o').replace('î', 'i').replace('ê', 'e')
             })
 
         if not batch_data:

@@ -355,6 +355,38 @@ export async function getChapterAction(bookSlug: string, chapter: number, transl
   return { success: true, verses: data };
 }
 
+export async function getVerseAction(bookSlug: string, chapter: number, verse: number, translationId: string = 'crampon') {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  // Récupérer l'id du livre
+  const { data: book, error: bookError } = await supabase
+    .from('bible_books')
+    .select('id')
+    .eq('slug', bookSlug)
+    .single();
+
+  if (bookError || !book) {
+    return { error: bookError?.message || 'Livre non trouvé' };
+  }
+
+  // Récupérer le verset spécifique avec la traduction
+  const { data, error } = await supabase
+    .from('bible_verses')
+    .select('*')
+    .eq('book_id', book.id)
+    .eq('chapter', chapter)
+    .eq('verse', verse)
+    .eq('translation_id', translationId)
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, verse: data };
+}
+
 export async function searchBibleAction(query: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

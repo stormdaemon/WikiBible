@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 interface WikiLink {
   id: string;
@@ -89,6 +89,9 @@ export function VerseCard({
   onSwitchTranslation,
   isAuthenticated,
 }: VerseCardProps) {
+  const [isPending, startTransition] = useTransition();
+  const [isChanging, setIsChanging] = useState(false);
+
   const hasContributions =
     contributions &&
     (contributions.links > 0 ||
@@ -99,6 +102,14 @@ export function VerseCard({
     ? (contributions.links! + contributions.annotations! + contributions.external_sources!)
     : 0;
 
+  const handleSwitch = (direction: 'prev' | 'next') => {
+    setIsChanging(true);
+    startTransition(() => {
+      onSwitchTranslation?.(direction);
+      setTimeout(() => setIsChanging(false), 150);
+    });
+  };
+
   const hasWikiLinks = contributions?.wiki_links && contributions.wiki_links.length > 0;
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
@@ -107,11 +118,14 @@ export function VerseCard({
       {/* Chevron gauche - Traduction précédente */}
       {onSwitchTranslation && (
         <button
-          onClick={() => onSwitchTranslation('prev')}
-          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group"
+          onClick={() => handleSwitch('prev')}
+          disabled={isPending || isChanging}
+          className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group ${
+            (isPending || isChanging) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           title={`Traduction précédente (${translationId === 'jerusalem' ? 'Crampon' : 'Jérusalem'})`}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="transform group-hover:-translate-x-0.5 transition-transform">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform group-hover:-translate-x-0.5 transition-transform ${isChanging ? 'scale-90' : ''}`}>
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
@@ -120,11 +134,14 @@ export function VerseCard({
       {/* Chevron droit - Traduction suivante */}
       {onSwitchTranslation && (
         <button
-          onClick={() => onSwitchTranslation('next')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group"
+          onClick={() => handleSwitch('next')}
+          disabled={isPending || isChanging}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group ${
+            (isPending || isChanging) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           title={`Traduction suivante (${translationId === 'crampon' ? 'Jérusalem' : 'Crampon'})`}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="transform group-hover:translate-x-0.5 transition-transform">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform group-hover:translate-x-0.5 transition-transform ${isChanging ? 'scale-90' : ''}`}>
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
@@ -264,7 +281,7 @@ export function VerseCard({
       </div>
 
       {/* Texte du verset */}
-      <p className="text-lg text-slate-800 leading-relaxed mb-4">
+      <p className={`text-lg text-slate-800 leading-relaxed mb-4 ${isChanging ? 'opacity-50 scale-95 transition-all duration-150' : 'transition-all duration-150'}`}>
         "{text}"
       </p>
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { VerseCard } from './VerseCard';
-import { getVerseContributionsAction } from '@/app/actions';
+import { getVerseContributionsAction, getVerseAction } from '@/app/actions';
 
 interface Verse {
   id: string;
@@ -14,6 +14,7 @@ interface Verse {
 interface ChapterContentProps {
   bookName: string;
   bookId: string;
+  bookSlug: string;
   chapter: number;
   verses: Verse[];
   isAuthenticated: boolean;
@@ -22,6 +23,7 @@ interface ChapterContentProps {
 export function ChapterContent({
   bookName,
   bookId,
+  bookSlug,
   chapter,
   verses,
   isAuthenticated,
@@ -31,6 +33,16 @@ export function ChapterContent({
   const [showAddLinkModal, setShowAddLinkModal] = useState(false);
   const [contributions, setContributions] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  // État pour stocker la traduction de chaque verset individuellement
+  const [versesTranslations, setVersesTranslations] = useState<Record<string, string>>(
+    verses.reduce((acc, verse) => ({ ...acc, [verse.id]: verse.translation_id }), {})
+  );
+
+  // État pour stocker le texte de chaque verset
+  const [versesTexts, setVersesTexts] = useState<Record<string, string>>(
+    verses.reduce((acc, verse) => ({ ...acc, [verse.id]: verse.text }), {})
+  );
 
   const handleOpenContributions = async (verseId: string, verseNumber: number) => {
     setSelectedVerseId(verseId);
@@ -59,11 +71,34 @@ export function ChapterContent({
     setShowAddLinkModal(false);
   };
 
+  const handleSwitchTranslation = async (verseId: string, direction: 'prev' | 'next') => {
+    const currentTranslation = versesTranslations[verseId];
+    const newTranslationId = currentTranslation === 'crampon' ? 'jerusalem' : 'crampon';
+
+    // Trouver le verset original pour récupérer bookSlug et chapter
+    const originalVerse = verses.find(v => v.id === verseId);
+    if (!originalVerse) return;
+
+    try {
+      // Récupérer le nouveau texte du verset dans l'autre traduction
+      const result = await getVerseAction(bookSlug, chapter, originalVerse.verse, newTranslationId);
+
+      if (result.success && result.verse) {
+        // Mettre à jour seulement ce verset avec animation
+        setVersesTranslations(prev => ({ ...prev, [verseId]: newTranslationId }));
+        setVersesTexts(prev => ({ ...prev, [verseId]: result.verse!.text }));
+      }
+    } catch (error) {
+      console.error('Erreur lors du changement de traduction:', error);
+    }
+  };
+
   // Calculate contribution counts for each verse
   const verseContributions: Record<string, any> = {};
   if (contributions && selectedVerseId) {
     verseContributions[selectedVerseId] = {
       links: contributions.links?.length || 0,
+      linkDetails: contributions.link_details || [],
       wiki_links: contributions.wiki_links || [],
       annotations: contributions.annotations?.length || 0,
       external_sources: contributions.external_sources?.length || 0,
@@ -74,21 +109,29 @@ export function ChapterContent({
     <>
       {/* Verses */}
       <div className="space-y-6">
-        {verses.map((verse) => (
-          <VerseCard
-            key={verse.id}
-            verseId={verse.id}
-            bookName={bookName}
-            chapter={chapter}
-            verseNumber={verse.verse}
-            text={verse.text}
-            translation="Bible Crampon"
-            contributions={verseContributions[verse.id]}
-            onOpenContributions={() => handleOpenContributions(verse.id, verse.verse)}
-            onOpenAddLink={() => handleOpenAddLink(verse.id, verse.verse)}
-            isAuthenticated={isAuthenticated}
-          />
-        ))}
+        {verses.map((verse) => {
+          const translationId = versesTranslations[verse.id];
+          const text = versesTexts[verse.id];
+
+          return (
+            <VerseCard
+              key={verse.id}
+              verseId={verse.id}
+              bookName={bookName}
+              chapter={chapter}
+              verseNumber={verse.verse}
+              text={text}
+              translation={translationId === 'jerusalem' ? 'Bible de Jérusalem' : 'Bible Crampon'}
+              translationId={translationId}
+              bookId={bookId}
+              contributions={verseContributions[verse.id]}
+              onOpenContributions={() => handleOpenContributions(verse.id, verse.verse)}
+              onOpenAddLink={() => handleOpenAddLink(verse.id, verse.verse)}
+              onSwitchTranslation={(direction) => handleSwitchTranslation(verse.id, direction)}
+              isAuthenticated={isAuthenticated}
+            />
+          );
+        })}
       </div>
 
       {/* Annotation Modal */}

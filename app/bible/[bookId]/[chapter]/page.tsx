@@ -79,6 +79,7 @@ export default async function ChapterPage({
         <ChapterContent
           bookName={book.name}
           bookId={book.id}
+          bookSlug={bookId}
           chapter={chapter}
           verses={verses}
           isAuthenticated={isAuthenticated}

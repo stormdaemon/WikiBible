@@ -324,7 +324,7 @@ export async function getBookAction(bookSlug: string) {
   return { success: true, book: data };
 }
 
-export async function getChapterAction(bookSlug: string, chapter: number) {
+export async function getChapterAction(bookSlug: string, chapter: number, translationId: string = 'crampon') {
   const { createPublicClient } = await import('@/utils/supabase/server');
   const supabase = createPublicClient();
 
@@ -339,12 +339,13 @@ export async function getChapterAction(bookSlug: string, chapter: number) {
     return { error: bookError?.message || 'Livre non trouvé' };
   }
 
-  // Ensuite récupérer les versets
+  // Ensuite récupérer les versets avec la traduction
   const { data, error } = await supabase
     .from('bible_verses')
     .select('*')
     .eq('book_id', book.id)
     .eq('chapter', chapter)
+    .eq('translation_id', translationId)
     .order('verse');
 
   if (error) {
@@ -372,9 +373,9 @@ export async function searchBibleAction(query: string) {
 }
 
 /**
- * Récupère les versets d'un chapitre spécifique
+ * Récupère les versets d'un chapitre spécifique avec une traduction donnée
  */
-export async function getVersesAction(bookId: string, chapter: number) {
+export async function getVersesAction(bookId: string, chapter: number, translationId: string = 'crampon') {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -382,6 +383,7 @@ export async function getVersesAction(bookId: string, chapter: number) {
     .select('*')
     .eq('book_id', bookId)
     .eq('chapter', chapter)
+    .eq('translation_id', translationId)
     .order('verse', { ascending: true });
 
   if (error) {

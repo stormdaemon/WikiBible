@@ -44,6 +44,7 @@ interface VerseCardProps {
   onOpenContributions: () => void;
   onOpenAddLink: () => void;
   onOpenTranslations?: () => void;
+  onSwitchTranslation?: (direction: 'prev' | 'next') => void;
   isAuthenticated: boolean;
   currentUserId?: string;
 }
@@ -85,6 +86,7 @@ export function VerseCard({
   onOpenContributions,
   onOpenAddLink,
   onOpenTranslations,
+  onSwitchTranslation,
   isAuthenticated,
 }: VerseCardProps) {
   const hasContributions =
@@ -101,7 +103,35 @@ export function VerseCard({
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg">
+    <div className="relative bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg">
+      {/* Chevron gauche - Traduction précédente */}
+      {onSwitchTranslation && (
+        <button
+          onClick={() => onSwitchTranslation('prev')}
+          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group"
+          title={`Traduction précédente (${translationId === 'jerusalem' ? 'Crampon' : 'Jérusalem'})`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="transform group-hover:-translate-x-0.5 transition-transform">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      )}
+
+      {/* Chevron droit - Traduction suivante */}
+      {onSwitchTranslation && (
+        <button
+          onClick={() => onSwitchTranslation('next')}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group"
+          title={`Traduction suivante (${translationId === 'crampon' ? 'Jérusalem' : 'Crampon'})`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="transform group-hover:translate-x-0.5 transition-transform">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      )}
+
+      {/* Contenu avec padding pour ne pas chevaucher les chevrons */}
+      <div className={onSwitchTranslation ? "mx-10" : ""}>
       {/* Header avec référence et actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         {/* Référence du verset avec badges */}
@@ -135,7 +165,9 @@ export function VerseCard({
           )}
 
           {/* Traduction */}
-          <span className="badge badge--default">{translation}</span>
+          <span className="badge badge--default">
+            {translationId === 'jerusalem' ? 'Bible de Jérusalem' : 'Bible Crampon'}
+          </span>
         </div>
 
         {/* Actions */}
@@ -257,6 +289,7 @@ export function VerseCard({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

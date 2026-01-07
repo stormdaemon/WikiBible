@@ -13,7 +13,7 @@ export default async function ChapterPage({
 
   const [bookResult, chapterResult] = await Promise.all([
     getBookAction(bookId),
-    getChapterAction(bookId, chapter),
+    getChapterAction(bookId, chapter, 'jerusalem'),
   ]);
 
   if (!bookResult.success || !chapterResult.success || !bookResult.book || !chapterResult.verses) {

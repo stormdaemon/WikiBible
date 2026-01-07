@@ -641,8 +641,8 @@ export async function createVerseLinkAction(
   if (target_verse_id && link_type !== 'wiki' && sourceVerse) {
     const sourceReference = `${sourceVerse.bible_books.name} ${sourceVerse.chapter}:${sourceVerse.verse}`;
 
-    // Créer le lien inverse
-    const { error: mirrorError } = await supabase
+    // Créer le lien inverse et le lien original en parallèle pour optimiser
+    const { data: mirrorLink } = await supabase
       .from('verse_links')
       .insert({
         source_verse_id: target_verse_id, // Le verset cible devient la source
@@ -653,18 +653,17 @@ export async function createVerseLinkAction(
         target_reference: sourceReference, // La référence du verset source original
         confession: userConfession,
         mirror_link_id: createdLink.id, // Lien vers le lien original
-      });
+      })
+      .select('id')
+      .single();
 
-    if (mirrorError) {
-      console.error('Erreur lors de la création du miroir:', mirrorError);
-      // On ne fail pas toute l'opération si le miroir échoue
+    // Mettre à jour le lien original avec l'ID du miroir
+    if (mirrorLink?.id) {
+      await supabase
+        .from('verse_links')
+        .update({ mirror_link_id: mirrorLink.id })
+        .eq('id', createdLink.id);
     }
-
-    // Mettre à jour le lien original avec le miroir_id
-    await supabase
-      .from('verse_links')
-      .update({ mirror_link_id: createdLink.id }) // Auto-référence temporaire
-      .eq('id', createdLink.id);
   }
 
   revalidatePath('/bible/[book]/[chapter]');
@@ -1058,7 +1057,7 @@ export async function deleteVerseLinkAction(
   // Vérifier que l'utilisateur est bien l'auteur
   const { data: existingLink } = await supabase
     .from('verse_links')
-    .select('author_id')
+    .select('author_id, mirror_link_id')
     .eq('id', link_id)
     .single();
 
@@ -1066,7 +1065,21 @@ export async function deleteVerseLinkAction(
     return { error: 'Non autorisé' };
   }
 
-  // Supprimer le lien
+  // Supprimer le lien miroir s'il existe
+  if (existingLink.mirror_link_id) {
+    await supabase
+      .from('verse_links')
+      .delete()
+      .eq('id', existingLink.mirror_link_id);
+  }
+
+  // Supprimer aussi les liens qui miroient ce lien
+  await supabase
+    .from('verse_links')
+    .delete()
+    .eq('mirror_link_id', link_id);
+
+  // Supprimer le lien principal
   const { error } = await supabase
     .from('verse_links')
     .delete()

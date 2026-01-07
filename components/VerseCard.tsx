@@ -41,6 +41,16 @@ interface VerseCardProps {
       };
     }>;
   };
+  allAnnotations?: {
+    annotations?: Array<{
+      id: string;
+      content: string;
+      author: {
+        username: string | null;
+        confession: string;
+      };
+    }>;
+  };
   onOpenContributions: () => void;
   onOpenAddLink: () => void;
   onOpenTranslations?: () => void;
@@ -83,6 +93,7 @@ export function VerseCard({
   bookId,
   translationId,
   contributions,
+  allAnnotations,
   onOpenContributions,
   onOpenAddLink,
   onOpenTranslations,
@@ -91,6 +102,7 @@ export function VerseCard({
 }: VerseCardProps) {
   const [isPending, startTransition] = useTransition();
   const [isChanging, setIsChanging] = useState(false);
+  const [showHoverAnnotations, setShowHoverAnnotations] = useState(false);
 
   const hasContributions =
     contributions &&
@@ -114,18 +126,26 @@ export function VerseCard({
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
   return (
-    <div className="relative bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg">
+    <div
+      className="relative bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg group/verse"
+      onMouseEnter={() => {
+        if (allAnnotations?.annotations && allAnnotations.annotations.length > 0 && window.innerWidth >= 1024) {
+          setShowHoverAnnotations(true);
+        }
+      }}
+      onMouseLeave={() => setShowHoverAnnotations(false)}
+    >
       {/* Chevron gauche - Traduction précédente */}
       {onSwitchTranslation && (
         <button
           onClick={() => handleSwitch('prev')}
           disabled={isPending || isChanging}
-          className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group ${
+          className={`absolute left-2 top-1/2 -translate-y-1/2 p-2.5 bg-gradient-to-br from-accent to-accent/90 text-white rounded-lg shadow-lg border-2 border-accent hover:from-accent/90 hover:to-accent transition-all group hover:shadow-xl ${
             (isPending || isChanging) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          title={`Traduction précédente (${translationId === 'jerusalem' ? 'Crampon' : 'Jérusalem'})`}
+          title={`Changer vers ${translationId === 'jerusalem' ? 'Bible Crampon' : 'Bible de Jérusalem'}`}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform group-hover:-translate-x-0.5 transition-transform ${isChanging ? 'scale-90' : ''}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform transition-transform ${isChanging ? 'scale-90' : 'group-hover:-translate-x-0.5'}`}>
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
@@ -136,12 +156,12 @@ export function VerseCard({
         <button
           onClick={() => handleSwitch('next')}
           disabled={isPending || isChanging}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-accent hover:text-white hover:border-accent transition-all group ${
+          className={`absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-gradient-to-br from-accent to-accent/90 text-white rounded-lg shadow-lg border-2 border-accent hover:from-accent/90 hover:to-accent transition-all group hover:shadow-xl ${
             (isPending || isChanging) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          title={`Traduction suivante (${translationId === 'crampon' ? 'Jérusalem' : 'Crampon'})`}
+          title={`Changer vers ${translationId === 'crampon' ? 'Bible de Jérusalem' : 'Bible Crampon'}`}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform group-hover:translate-x-0.5 transition-transform ${isChanging ? 'scale-90' : ''}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transform transition-transform ${isChanging ? 'scale-90' : 'group-hover:translate-x-0.5'}`}>
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
@@ -284,6 +304,28 @@ export function VerseCard({
       <p className={`text-lg text-slate-800 leading-relaxed mb-4 ${isChanging ? 'opacity-50 scale-95 transition-all duration-150' : 'transition-all duration-150'}`}>
         "{text}"
       </p>
+
+      {/* Annotations au hover (PC uniquement) */}
+      {showHoverAnnotations && allAnnotations?.annotations && allAnnotations.annotations.length > 0 && (
+        <div className="hidden lg:block absolute left-0 right-0 top-full mt-2 z-50">
+          <div className="bg-white rounded-lg shadow-xl border border-accent p-4 mx-10">
+            <h4 className="text-sm font-bold text-accent mb-2">Annotations</h4>
+            <div className="space-y-2">
+              {allAnnotations.annotations.slice(0, 3).map((annotation) => (
+                <div key={annotation.id} className="text-sm text-slate-700 bg-slate-50 p-2 rounded">
+                  <p className="line-clamp-3">{annotation.content}</p>
+                  <p className="text-xs text-slate-500 mt-1">— {annotation.author.username || 'Anonyme'}</p>
+                </div>
+              ))}
+              {allAnnotations.annotations.length > 3 && (
+                <p className="text-xs text-slate-500 italic">
+                  +{allAnnotations.annotations.length - 3} autre(s) annotation(s)
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Badges confession des auteurs de liens */}
       {contributions?.linkDetails && contributions.linkDetails.length > 0 && (

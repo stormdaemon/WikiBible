@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { VerseCard } from './VerseCard';
 import { getVerseContributionsAction, getVerseAction } from '@/app/actions';
 
@@ -33,6 +33,7 @@ export function ChapterContent({
   const [showAddLinkModal, setShowAddLinkModal] = useState(false);
   const [contributions, setContributions] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [allAnnotations, setAllAnnotations] = useState<Record<string, any>>({});
 
   // État pour stocker la traduction de chaque verset individuellement
   const [versesTranslations, setVersesTranslations] = useState<Record<string, string>>(
@@ -43,6 +44,26 @@ export function ChapterContent({
   const [versesTexts, setVersesTexts] = useState<Record<string, string>>(
     verses.reduce((acc, verse) => ({ ...acc, [verse.id]: verse.text }), {})
   );
+
+  // Charger toutes les annotations au montage
+  useEffect(() => {
+    const loadAllAnnotations = async () => {
+      const annotationsPromises = verses.map(async (verse) => {
+        const result = await getVerseContributionsAction(verse.id);
+        return { verseId: verse.id, data: result };
+      });
+
+      const results = await Promise.all(annotationsPromises);
+      const annotationsMap = results.reduce((acc, { verseId, data }) => {
+        acc[verseId] = data;
+        return acc;
+      }, {} as Record<string, any>);
+
+      setAllAnnotations(annotationsMap);
+    };
+
+    loadAllAnnotations();
+  }, [verses]);
 
   const handleOpenContributions = async (verseId: string, verseNumber: number) => {
     setSelectedVerseId(verseId);
@@ -125,6 +146,7 @@ export function ChapterContent({
               translationId={translationId}
               bookId={bookId}
               contributions={verseContributions[verse.id]}
+              allAnnotations={allAnnotations[verse.id]}
               onOpenContributions={() => handleOpenContributions(verse.id, verse.verse)}
               onOpenAddLink={() => handleOpenAddLink(verse.id, verse.verse)}
               onSwitchTranslation={(direction) => handleSwitchTranslation(verse.id, direction)}

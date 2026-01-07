@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import Header from '@/components/Header';
+import { RadioPlayer } from '@/components/RadioPlayer';
 import { createClient } from '@/utils/supabase/server';
 
 // ... (rest of imports)
@@ -47,6 +48,7 @@ export default async function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${libreBaskerville.variable}`}>
       <body className="antialiased min-h-screen flex flex-col">
+        <RadioPlayer />
         <Header user={user} />
         {children}
       </body>

@@ -155,6 +155,210 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Nos Partenaires */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif font-bold text-primary mb-3">Nos Partenaires</h2>
+            <p className="text-secondary max-w-2xl mx-auto">
+              Ils nous font confiance et partagent notre mission
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* Heaven Radio */}
+            <a
+              href="https://heavenradio.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://lebaptemecatholique.fr/assets/heavenradio.png"
+                  alt="Heaven Radio"
+                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  Heaven Radio
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">100% Louange et Adoration</p>
+              </div>
+            </a>
+
+            {/* La Mission Catholique */}
+            <a
+              href="https://lamissioncatholique.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://lebaptemecatholique.fr/assets/missioncatho.png"
+                  alt="La Mission Catholique"
+                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  La Mission Catholique
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">Évangélisation et mission</p>
+              </div>
+            </a>
+
+            {/* Ultreia Event */}
+            <a
+              href="https://ultreiaevent.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/da52mpv3g/image/upload/c_limit,w_256/f_auto/q_auto/v1/institut-apologetique/ultreia-png?_a=BAVC1WAQ0"
+                  alt="Ultreia Event"
+                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  Ultreia Event
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">Événements catholiques</p>
+              </div>
+            </a>
+
+            {/* SOS Chrétiens d'Orient */}
+            <a
+              href="https://soschretiensdorient.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/da52mpv3g/image/upload/c_limit,w_256/f_auto/q_auto/v1/institut-apologetique/soscatho-png?_a=BAVC1WAQ0"
+                  alt="SOS Chrétiens d'Orient"
+                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  SOS Chrétiens d'Orient
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">Aide aux chrétiens persécutés</p>
+              </div>
+            </a>
+
+            {/* Institut Irénée */}
+            <a
+              href="https://irenee-institut.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1767791238/institut_irenee_nyjpn1.png"
+                  alt="Institut Irénée"
+                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  Institut Irénée
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">Formation catholique</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-surface border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-6">

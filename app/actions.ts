@@ -1316,3 +1316,51 @@ export async function getLeaderboardAction(limit: number = 100) {
     leaderboard: transformedLeaderboard,
   };
 }
+
+// ============================================================================
+// BIBLE ENTITIES ACTIONS
+// ============================================================================
+
+export interface BibleEntity {
+  id: string;
+  name: string;
+  slug: string;
+  entity_type: 'person' | 'place' | 'concept' | 'event';
+  summary: string | null;
+  wiki_article_id: string | null;
+  aliases: string[] | null;
+  metadata: Record<string, any> | null;
+}
+
+export async function getBibleEntitiesAction(): Promise<{ success: boolean; entities?: BibleEntity[]; error?: string }> {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  const { data, error } = await supabase
+    .from('bible_entities')
+    .select('*')
+    .order('name');
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, entities: data || [] };
+}
+
+export async function getBibleEntityBySlugAction(slug: string): Promise<{ success: boolean; entity?: BibleEntity; error?: string }> {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  const { data, error } = await supabase
+    .from('bible_entities')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, entity: data };
+}

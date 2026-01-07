@@ -1097,6 +1097,77 @@ export async function deleteVerseLinkAction(
 // GAMIFICATION ACTIONS
 // ============================================================================
 
+/**
+ * Met à jour le score d'un utilisateur
+ * @param userId - ID de l'utilisateur
+ * @param pointsChange - +1 pour ajout, -1 pour retrait
+ */
+async function updateUserScore(userId: string, pointsChange: number) {
+  const supabase = await createClient();
+
+  // Récupérer ou créer le score
+  const { data: currentScore } = await supabase
+    .from('user_scores')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (currentScore) {
+    // Mettre à jour le score existant
+    const newTotalHearts = Math.max(0, (currentScore.total_hearts || 0) + pointsChange);
+
+    await supabase
+      .from('user_scores')
+      .update({
+        total_hearts: newTotalHearts,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+  } else {
+    // Créer un nouveau score
+    await supabase
+      .from('user_scores')
+      .insert({
+        user_id: userId,
+        total_hearts: Math.max(0, pointsChange),
+        total_contributions: 0,
+        total_likes_received: 0,
+      });
+  }
+}
+
+/**
+ * Incrémente le compteur de contributions d'un utilisateur
+ */
+async function incrementContributions(userId: string) {
+  const supabase = await createClient();
+
+  const { data: currentScore } = await supabase
+    .from('user_scores')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (currentScore) {
+    await supabase
+      .from('user_scores')
+      .update({
+        total_contributions: (currentScore.total_contributions || 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+  } else {
+    await supabase
+      .from('user_scores')
+      .insert({
+        user_id: userId,
+        total_hearts: 1, // +1 point pour la contribution
+        total_contributions: 1,
+        total_likes_received: 0,
+      });
+  }
+}
+
 const LikeContributionSchema = z.object({
   contribution_type: z.enum(['link', 'annotation', 'external_source', 'wiki_article']),
   contribution_id: z.string().uuid(),

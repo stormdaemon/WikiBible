@@ -13,16 +13,31 @@ export default async function BiblePage() {
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
-
-
       <div className="max-w-7xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-serif text-primary mb-8">
           La Bible Catholique
         </h1>
 
+        {/* Navigation rapide - Sticky */}
+        <div className="sticky top-0 z-40 bg-background border-b border-border py-4 mb-8 shadow-sm">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <a
+              href="#ancien-testament"
+              className="btn btn--primary"
+            >
+              📜 Ancien Testament
+            </a>
+            <a
+              href="#nouveau-testament"
+              className="btn btn--secondary"
+            >
+              ✝️ Nouveau Testament
+            </a>
+          </div>
+        </div>
+
         {/* Ancien Testament */}
-        <section className="mb-12">
+        <section id="ancien-testament" className="mb-12 scroll-mt-32">
           <div className="flex items-center gap-4 mb-6">
             <h2 className="text-2xl font-bold text-primary">Ancien Testament</h2>
             <span className="badge badge--accent">46 livres</span>
@@ -53,7 +68,7 @@ export default async function BiblePage() {
         </section>
 
         {/* Nouveau Testament */}
-        <section>
+        <section id="nouveau-testament" className="scroll-mt-32">
           <div className="flex items-center gap-4 mb-6">
             <h2 className="text-2xl font-bold text-primary">Nouveau Testament</h2>
             <span className="badge badge--accent">27 livres</span>

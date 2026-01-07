@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { VerseCard } from './VerseCard';
-import { getVerseContributionsAction, getVerseAction } from '@/app/actions';
+import { getVerseContributionsAction, getVerseAction, getBibleEntitiesAction } from '@/app/actions';
+import type { BibleEntity } from '@/app/actions';
 
 interface Verse {
   id: string;
@@ -45,6 +46,9 @@ export function ChapterContent({
     verses.reduce((acc, verse) => ({ ...acc, [verse.id]: verse.text }), {})
   );
 
+  // État pour stocker les entités bibliques
+  const [entities, setEntities] = useState<BibleEntity[]>([]);
+
   // Charger toutes les annotations au montage
   useEffect(() => {
     const loadAllAnnotations = async () => {
@@ -64,6 +68,18 @@ export function ChapterContent({
 
     loadAllAnnotations();
   }, [verses]);
+
+  // Charger les entités bibliques au montage
+  useEffect(() => {
+    const loadEntities = async () => {
+      const result = await getBibleEntitiesAction();
+      if (result.success && result.entities) {
+        setEntities(result.entities);
+      }
+    };
+
+    loadEntities();
+  }, []);
 
   const handleOpenContributions = async (verseId: string, verseNumber: number) => {
     setSelectedVerseId(verseId);
@@ -151,6 +167,8 @@ export function ChapterContent({
               onOpenAddLink={() => handleOpenAddLink(verse.id, verse.verse)}
               onSwitchTranslation={(direction) => handleSwitchTranslation(verse.id, direction)}
               isAuthenticated={isAuthenticated}
+              entities={entities}
+              onEntityAdded={(newEntity) => setEntities([...entities, newEntity])}
             />
           );
         })}

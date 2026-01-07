@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { InteractiveVerse } from '@/src/components/interactive-verse';
+import type { BibleEntity } from '@/app/actions';
 
 interface WikiLink {
   id: string;
@@ -57,6 +59,8 @@ interface VerseCardProps {
   onSwitchTranslation?: (direction: 'prev' | 'next') => void;
   isAuthenticated: boolean;
   currentUserId?: string;
+  entities?: BibleEntity[];
+  onEntityAdded?: (entity: BibleEntity) => void;
 }
 
 // Couleurs pour les badges confession
@@ -99,6 +103,8 @@ export function VerseCard({
   onOpenTranslations,
   onSwitchTranslation,
   isAuthenticated,
+  entities = [],
+  onEntityAdded,
 }: VerseCardProps) {
   const [isPending, startTransition] = useTransition();
   const [isChanging, setIsChanging] = useState(false);
@@ -301,9 +307,14 @@ export function VerseCard({
       </div>
 
       {/* Texte du verset */}
-      <p className={`text-lg text-slate-800 leading-relaxed mb-4 ${isChanging ? 'opacity-50 scale-95 transition-all duration-150' : 'transition-all duration-150'}`}>
-        "{text}"
-      </p>
+      <div className={`text-lg text-slate-800 leading-relaxed mb-4 ${isChanging ? 'opacity-50 scale-95 transition-all duration-150' : 'transition-all duration-150'}`}>
+        "{<InteractiveVerse
+          verseId={verseId}
+          text={text}
+          entities={entities}
+          onEntityAdded={onEntityAdded}
+        />}"
+      </div>
 
       {/* Annotations au hover (PC uniquement) */}
       {showHoverAnnotations && allAnnotations?.annotations && allAnnotations.annotations.length > 0 && (

@@ -1364,3 +1364,68 @@ export async function getBibleEntityBySlugAction(slug: string): Promise<{ succes
 
   return { success: true, entity: data };
 }
+
+const CreateEntitySchema = z.object({
+  name: z.string().min(1),
+  entity_type: z.enum(['person', 'place', 'concept', 'event']),
+  summary: z.string().min(1),
+  aliases: z.string().optional(),
+});
+
+export async function createEntityAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult & { entity?: BibleEntity }> {
+  const validatedFields = CreateEntitySchema.safeParse({
+    name: formData.get('name'),
+    entity_type: formData.get('entity_type'),
+    summary: formData.get('summary'),
+    aliases: formData.get('aliases'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { name, entity_type, summary, aliases } = validatedFields.data;
+
+  // Générer le slug
+  const slug = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+  // Préparer les aliases
+  const aliasesArray = aliases
+    ? aliases.split(',').map(a => a.trim()).filter(a => a.length > 0)
+    : [];
+
+  // Créer l'entité
+  const { data, error } = await supabase
+    .from('bible_entities')
+    .insert({
+      name,
+      slug,
+      entity_type,
+      summary,
+      aliases: aliasesArray,
+      metadata: {},
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, entity: data };
+}

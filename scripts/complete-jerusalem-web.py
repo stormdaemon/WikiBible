@@ -21,27 +21,27 @@ HEADERS = {
     'Prefer': 'return=representation'
 }
 
-# Mapping livres anglais -> slugs
-BOOK_NAME_TO_SLUG = {
-    'Genesis': 'genese', 'Exodus': 'exode', 'Leviticus': 'levitique', 'Numbers': 'nombres',
-    'Deuteronomy': 'deuteronome', 'Joshua': 'josue', 'Judges': 'juges', 'Ruth': 'ruth',
-    '1 Samuel': '1-samuel', '2 Samuel': '2-samuel', '1 Kings': '1-rois', '2 Kings': '2-rois',
-    '1 Chronicles': '1-chroniques', '2 Chronicles': '2-chroniques', 'Ezra': 'esdras',
-    'Nehemiah': 'nehemie', 'Esther': 'esther', 'Job': 'job', 'Psalms': 'psaumes',
-    'Proverbs': 'proverbes', 'Ecclesiastes': 'ecclesiaste', 'Song of Solomon': 'cantique',
-    'Isaiah': 'eesaie', 'Jeremiah': 'jeremie', 'Lamentations': 'lamentations', 'Ezekiel': 'ezechiel',
-    'Daniel': 'daniel', 'Hosea': 'osee', 'Joel': 'joel', 'Amos': 'amos', 'Obadiah': 'abdias',
-    'Jonah': 'jonas', 'Micah': 'michee', 'Nahum': 'nahum', 'Habakkuk': 'habacuc',
-    'Zephaniah': 'sophonie', 'Haggai': 'aggee', 'Zechariah': 'zacharie', 'Malachi': 'malachie',
-    'Matthew': 'matthieu', 'Mark': 'marc', 'Luke': 'luc', 'John': 'jean', 'Acts': 'actes',
-    'Romans': 'romains', '1 Corinthians': '1-corinthiens', '2 Corinthians': '2-corinthiens',
-    'Galatians': 'galates', 'Ephesians': 'ephesiens', 'Philippiens': 'philippiens',
-    'Colossiens': 'colossiens', '1 Thessalonians': '1-thesaloniciens', '2 Thessalonicians': '2-thesaloniciens',
-    '1 Timothy': '1-timothee', '2 Timothy': '2-timothee', 'Titus': 'tite', 'Philemon': 'philemon',
-    'Hebrews': 'hebreux', 'James': 'jacques', '1 Peter': '1-pierre', '2 Peter': '2-pierre',
-    '1 John': '1-jean', '2 John': '2-jean', '3 John': '3-jean', 'Jude': 'jude',
-    'Revelation': 'apocalypse', 'Tobit': 'tobie', 'Judith': 'judith', 'Wisdom': 'sagesse',
-    'Sirach': 'siracide', 'Baruch': 'baruch', '1 Maccabees': '1-macchabees', '2 Maccabees': '2-macchabees'
+# Mapping livres code site -> slug
+BOOK_CODE_TO_SLUG = {
+    'gen': 'genese', 'exod': 'exode', 'lev': 'levitique', 'num': 'nombres',
+    'deut': 'deuteronome', 'josh': 'josue', 'judg': 'juges', 'ruth': 'ruth',
+    '1sam': '1-samuel', '2sam': '2-samuel', '1kgs': '1-rois', '2kgs': '2-rois',
+    '1chr': '1-chroniques', '2chr': '2-chroniques', 'ezra': 'esdras',
+    'neh': 'nehemie', 'esth': 'esther', 'job': 'job', 'ps': 'psaumes',
+    'prov': 'proverbes', 'eccl': 'ecclesiaste', 'song': 'cantique',
+    'isa': 'eesaie', 'jer': 'jeremie', 'lam': 'lamentations', 'ezek': 'ezechiel',
+    'dan': 'daniel', 'hos': 'osee', 'joel': 'joel', 'amos': 'amos', 'obad': 'abdias',
+    'jonah': 'jonas', 'mic': 'michee', 'nah': 'nahum', 'hab': 'habacuc',
+    'zeph': 'sophonie', 'hag': 'aggee', 'zech': 'zacharie', 'mal': 'malachie',
+    'matt': 'matthieu', 'mark': 'marc', 'luke': 'luc', 'john': 'jean', 'acts': 'actes',
+    'rom': 'romains', '1cor': '1-corinthiens', '2cor': '2-corinthiens',
+    'gal': 'galates', 'eph': 'ephesiens', 'phil': 'philippiens',
+    'col': 'colossiens', '1thess': '1-thesaloniciens', '2thess': '2-thesaloniciens',
+    '1tim': '1-timothee', '2tim': '2-timothee', 'titus': 'tite', 'phlm': 'philemon',
+    'heb': 'hebreux', 'jas': 'jacques', '1pet': '1-pierre', '2pet': '2-pierre',
+    '1john': '1-jean', '2john': '2-jean', '3john': '3-jean', 'jude': 'jude',
+    'rev': 'apocalypse', 'tob': 'tobie', 'jdt': 'judith', 'wis': 'sagesse',
+    'sir': 'siracide', 'bar': 'baruch', '1macc': '1-macchabees', '2macc': '2-macchabees'
 }
 
 def fetch_books():
@@ -62,34 +62,33 @@ def fetch_existing_verses(book_slug):
         return set((v['chapter'], v['verse']) for v in response.json())
     return set()
 
-def scrape_chapter(book_name, chapter_num):
+def scrape_chapter(book_code, chapter_num):
     """Scrape un chapitre depuis gratis.bible"""
-    # URL pattern: https://gratis.bible/fr/dejer/GENESIS/1.htm
-    book_url_name = book_name.upper().replace(' ', '_')
-    url = f"https://gratis.bible/fr/dejer/{book_url_name}/{chapter_num}.htm"
+    # URL pattern: https://gratis.bible/fr/dejer/gen/1.htm
+    url = f"https://gratis.bible/fr/dejer/{book_code}/{chapter_num}.htm"
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=15)
         if response.status_code != 200:
-            print(f"    ERROR HTTP {response.status_code} for {url}")
             return []
 
         soup = BeautifulSoup(response.text, 'html.parser')
         verses = []
 
-        # Trouver tous les versets
-        # Le format est typiquement: <p class="verse"><sup>1</sup>Texte...</p>
-        for p in soup.find_all('p', class_='verse'):
-            # Extraire le numéro
-            sup = p.find('sup')
-            if sup:
+        # Trouver tous les versets - le format peut varier
+        # Chercher tous les paragraphes avec un numero au debut
+        for p in soup.find_all('p'):
+            text = p.get_text(strip=True)
+            if not text:
+                continue
+
+            # Chercher un numero de verset au debut (ex: "1 ", "2 ", etc.)
+            match = re.match(r'^(\d+)\s+(.+)', text)
+            if match:
                 try:
-                    verse_num = int(sup.text.strip())
-                    # Supprimer le sup et obtenir le texte
-                    sup.decompose()
-                    verse_text = p.get_text(strip=True)
-                    verse_text = re.sub(r'^\d+\s*', '', verse_text)  # Enlever le numéro au début
-                    verse_text = re.sub(r'\s+', ' ', verse_text)  # Nettoyer espaces
+                    verse_num = int(match.group(1))
+                    verse_text = match.group(2)
+                    verse_text = re.sub(r'\s+', ' ', verse_text).strip()
 
                     if verse_text:
                         verses.append({
@@ -113,51 +112,28 @@ def main():
 
     book_id_map = fetch_books()
 
-    # Ordre des livres sur le site
-    books_order = [
-        'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
-        'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel',
-        '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra', 'Nehemiah',
-        'Esther', 'Job', 'Psalms', 'Proverbs', 'Ecclesiastes', 'Song of Solomon',
-        'Isaiah', 'Jeremiah', 'Lamentations', 'Ezekiel', 'Daniel',
-        'Hosea', 'Joel', 'Amos', 'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk',
-        'Zephaniah', 'Haggai', 'Zechariah', 'Malachi',
-        'Matthew', 'Mark', 'Luke', 'John', 'Acts',
-        'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians',
-        'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonicians',
-        '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James',
-        '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation',
-        'Tobit', 'Judith', 'Wisdom', 'Sirach', 'Baruch', '1 Maccabees', '2 Maccabees'
-    ]
-
     total_inserted = 0
     total_skipped = 0
     books_processed = 0
 
-    for book_name in books_order:
-        slug = BOOK_NAME_TO_SLUG.get(book_name)
-        if not slug:
-            print(f"\nSKIP: {book_name} - no slug mapping")
-            continue
-
+    for book_code, slug in BOOK_CODE_TO_SLUG.items():
         book_id = book_id_map.get(slug)
         if not book_id:
-            print(f"\nSKIP: {book_name} - no book_id")
+            print(f"\nSKIP: {book_code} - no book_id for {slug}")
             continue
 
         books_processed += 1
-        print(f"\n[{books_processed}] {book_name} ({slug})")
+        print(f"\n[{books_processed}] {book_code} ({slug})")
 
         existing = fetch_existing_verses(slug)
         print(f"  Existing: {len(existing)} verses")
 
         # Scraper les chapitres (1-150 max)
         for chapter in range(1, 151):
-            verses_data = scrape_chapter(book_name, chapter)
+            verses_data = scrape_chapter(book_code, chapter)
 
             if not verses_data:
-                if chapter <= 50:  # Afficher seulement les 50 premiers chapitres
-                    print(f"    Chapter {chapter}: no verses found")
+                # Pas de versets trouves - peut etre fin du livre
                 continue
 
             verses_to_insert = []
@@ -191,7 +167,7 @@ def main():
                         print(f"    ERROR Chapter {chapter}: {response.status_code}")
 
             # Délai pour ne pas surcharger le serveur
-            time.sleep(0.5)
+            time.sleep(0.3)
 
     print("\n" + "="*60)
     print(f"DONE: {books_processed} books, {total_inserted} inserted, {total_skipped} skipped")

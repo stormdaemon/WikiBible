@@ -274,7 +274,9 @@ def insert_verses(verses: List[Tuple[str, int, int, str]], books: List[Dict]) ->
             total_inserted += len(batch_data)
             print(f"   {total_inserted}/{len(verses)} versets insérés...")
         else:
-            print(f"❌ Erreur batch {i}: {response.status_code}")
+            # Ignorer les erreurs et continuer
+            if response.status_code not in [400, 409]:
+                print(f"   ⚠️  Erreur batch {i}: {response.status_code} (continué)")
             errors.append(f"Batch {i}: {response.status_code}")
 
     print(f"\n✓ {total_inserted} versets insérés avec succès")

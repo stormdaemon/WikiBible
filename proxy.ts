@@ -25,8 +25,11 @@ export default async function proxy(request: NextRequest) {
   );
 
   // Rafraîchit automatiquement la session si expirée
-  // Ceci est CRITIQUE - doit toujours être appelé
-  const { data: { session } } = await supabase.auth.getSession();
+  // Ceci est CRITIQUE - getUser force le rafraîchissement du token
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Pour la compatibilité, on crée un objet session similaire
+  const session = user ? { user } : null;
 
   // Redirection pour les pages protégées
   if (!session && request.nextUrl.pathname.startsWith('/wiki/new')) {
@@ -47,3 +50,18 @@ export default async function proxy(request: NextRequest) {
 
   return response;
 }
+
+// Configuration du matcher pour Next.js 16
+// Le proxy s'exécute sur toutes les routes SAUF les fichiers statiques
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};

@@ -35,6 +35,7 @@ export function LikeButton({
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [animate, setAnimate] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(
     toggleLikeAction,
     { liked: initialLiked, new_count: initialCount }
@@ -42,8 +43,14 @@ export function LikeButton({
 
   // Update state when server action completes
   useEffect(() => {
+    if (state?.error) {
+      setError(state.error);
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    }
     if (state?.success && state.liked !== undefined) {
       setIsLiked(state.liked);
+      setError(null); // Clear error on success
       if (state.new_count !== undefined) {
         setCount(state.new_count);
       }
@@ -59,11 +66,17 @@ export function LikeButton({
   const iconSize = iconSizes[size];
 
   return (
-    <form action={formAction} className="inline">
-      <input type="hidden" name="contribution_type" value={contributionType} />
-      <input type="hidden" name="contribution_id" value={contributionId} />
+    <div className="inline-block">
+      {error && (
+        <div className="text-xs text-red-500 mb-1 max-w-[200px]">
+          {error === 'Non authentifié' ? 'Connectez-vous pour liker' : error}
+        </div>
+      )}
+      <form action={formAction} className="inline">
+        <input type="hidden" name="contribution_type" value={contributionType} />
+        <input type="hidden" name="contribution_id" value={contributionId} />
 
-      <button
+        <button
         type="submit"
         onClick={handleClick}
         disabled={pending}
@@ -100,5 +113,6 @@ export function LikeButton({
         )}
       </button>
     </form>
+    </div>
   );
 }

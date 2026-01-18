@@ -5,6 +5,7 @@ import { ApocryphaVerseCard } from './ApocryphaVerseCard';
 import { useState } from 'react';
 import { AddLinkModal } from './AddLinkModal';
 import { AnnotationModal } from './AnnotationModal';
+import { getVerseContributionsAction } from '@/app/actions';
 
 interface ApocryphaContentProps {
   book: {
@@ -42,19 +43,23 @@ export function ApocryphaContent({ book, chapters, isAuthenticated = false }: Ap
     setSelectedVerse(verseId);
     setShowContributionsModal(true);
 
-    // Charger les contributions (placeholder pour l'instant)
-    // TODO: Implement getApocryphaContributionsAction
-    setContributions({
-      links: [],
-      annotations: [],
-      external_sources: [],
-    });
+    // Charger les contributions depuis le serveur (utiliser verseId immédiatement)
+    const result = await getVerseContributionsAction(verseId);
+    setContributions(result);
   };
 
   const handleCloseContributions = () => {
     setShowContributionsModal(false);
     setSelectedVerse(null);
     setContributions(null);
+  };
+
+  const handleRefreshContributions = async () => {
+    if (selectedVerse) {
+      // Charger les contributions depuis le serveur
+      const result = await getVerseContributionsAction(selectedVerse);
+      setContributions(result);
+    }
   };
 
   return (
@@ -96,6 +101,7 @@ export function ApocryphaContent({ book, chapters, isAuthenticated = false }: Ap
           verseId={selectedVerse}
           isOpen={showAddLinkModal}
           onClose={handleCloseAddLink}
+          sourceType="apocryphal"
         />
       )}
 
@@ -107,6 +113,7 @@ export function ApocryphaContent({ book, chapters, isAuthenticated = false }: Ap
           contributions={contributions || { links: [], annotations: [], external_sources: [] }}
           isOpen={showContributionsModal}
           onClose={handleCloseContributions}
+          onRefresh={handleRefreshContributions}
         />
       )}
     </>

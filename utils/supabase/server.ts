@@ -11,10 +11,12 @@ export const createPublicClient = () => {
 };
 
 // Client SSR avec gestion des cookies pour les utilisateurs authentifiés
+// NOTE: Ce client est conçu pour les Server Components
+// Pour les Server Actions, utilisez le fichier server-action.ts
 export const createClient = async () => {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  const supabase = createServerClient(
     supabaseUrl,
     supabaseKey,
     {
@@ -29,11 +31,17 @@ export const createClient = async () => {
             );
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
+            // This can be ignored if you have proxy refreshing
             // user sessions.
           }
         },
       },
     }
   );
+
+  // FORCER le rafraîchissement de la session pour Server Components
+  // Ceci assure que auth.uid() fonctionne correctement
+  await supabase.auth.getUser();
+
+  return supabase;
 };

@@ -1,14 +1,24 @@
 import { getBookAction, getChapterAction } from '@/app/actions';
 import Link from 'next/link';
-import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
+import { ChapterContentContributiveWrapper } from '@/components/ChapterContentContributiveWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
 import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
-// Note: revalidate est retiré car dynamic='force-dynamic' le rend inutile
+export const revalidate = 3600;
 
+const COMMUNITY_TRANSLATIONS = [
+  { id: 'osty', name: 'Bible Osty' },
+  { id: 'liturgique', name: 'Traduction Liturgique' },
+  { id: 'tob', name: 'Bible Tob' },
+  { id: 'vulgate', name: 'Vulgate' },
+  { id: 'septante', name: 'Septante' },
+  { id: 'hebreu', name: 'Texte Hébreu' },
+  { id: 'latin', name: 'Texte Latin' },
+  { id: 'grec', name: 'Texte Grec' },
+] as const;
 
-export default async function ChapterPage({
+export default async function ContributiveChapterPage({
   params,
   searchParams,
 }: {
@@ -16,17 +26,12 @@ export default async function ChapterPage({
   searchParams: Promise<{ translation?: string }>;
 }) {
   const { bookId, chapter: chapterStr } = await params;
-  const { translation = 'crampon' } = await searchParams;
+  const { translation = 'osty' } = await searchParams;
   const chapter = parseInt(chapterStr);
-
-  // Valider que la traduction est correcte
-  const validTranslation: 'crampon' | 'jerusalem' = (translation === 'jerusalem' || translation === 'crampon')
-    ? translation as 'crampon' | 'jerusalem'
-    : 'crampon';
 
   const [bookResult, chapterResult] = await Promise.all([
     getBookAction(bookId),
-    getChapterAction(bookId, chapter, validTranslation),
+    getChapterAction(bookId, chapter, translation),
   ]);
 
   if (!bookResult.success || !chapterResult.success || !bookResult.book || !chapterResult.verses) {
@@ -40,18 +45,14 @@ export default async function ChapterPage({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const isAuthenticated = !!user;
-  const currentUserId = user?.id;
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
-
-
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm">
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            <li><Link href="/bible" className="text-secondary hover:text-primary">Bible</Link></li>
+            <li><Link href="/bible-contributive" className="text-secondary hover:text-primary">Bible Contributive</Link></li>
             <li><span className="text-slate-300">/</span></li>
             <li><span className="text-accent font-medium">{book.name}</span></li>
             <li><span className="text-slate-300">/</span></li>
@@ -68,7 +69,7 @@ export default async function ChapterPage({
         <div className="flex justify-between items-center mb-8 pb-4 border-b border-border">
           {chapter > 1 ? (
             <Link
-              href={`/bible/${bookId}/${chapter - 1}`}
+              href={`/bible-contributive/${bookId}/${chapter - 1}`}
               className="btn btn--secondary"
             >
               ← Chapitre précédent
@@ -79,7 +80,7 @@ export default async function ChapterPage({
 
           {chapter < book.chapters ? (
             <Link
-              href={`/bible/${bookId}/${chapter + 1}`}
+              href={`/bible-contributive/${bookId}/${chapter + 1}`}
               className="btn btn--primary"
             >
               Chapitre suivant →
@@ -90,15 +91,15 @@ export default async function ChapterPage({
         </div>
 
         {/* Verses */}
-        <ChapterContentWrapper
+        <ChapterContentContributiveWrapper
           bookName={book.name}
           bookId={book.id}
           bookSlug={bookId}
           chapter={chapter}
           verses={verses}
           isAuthenticated={isAuthenticated}
-          currentUserId={currentUserId}
-          initialTranslation={validTranslation}
+          initialTranslation={translation}
+          translations={COMMUNITY_TRANSLATIONS}
         />
 
         {/* Chapter Navigation */}
@@ -109,7 +110,7 @@ export default async function ChapterPage({
             bookSlug={bookId}
             chapter={chapter}
             totalChapters={book.chapters}
-            basePath="/bible"
+            basePath="/bible-contributive"
           />
         </div>
       </div>

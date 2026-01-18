@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useActionState } from 'react';
-import { createVerseLinkAction } from '@/app/actions';
-import { VerseSelector } from './VerseSelector';
+import { createUniversalLinkWithSourceAction } from '@/app/actions';
+import { UniversalVerseSelector } from './UniversalVerseSelector';
+import type { VerseSourceType } from './UniversalVerseSelector';
 
 type Step = 1 | 2;
 type Category = 'bible_link' | 'commentary' | 'external_reference' | null;
@@ -12,13 +13,35 @@ interface AddLinkModalProps {
   verseId: string;
   isOpen: boolean;
   onClose: () => void;
+  onRefresh?: () => void;
+  sourceType?: VerseSourceType; // Type de la source du verset actuel
 }
 
-export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
-  const [state, formAction, pending] = useActionState(createVerseLinkAction, null);
+export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType = 'bible' }: AddLinkModalProps) {
+  const [state, formAction, pending] = useActionState(createUniversalLinkWithSourceAction, null);
   const [step, setStep] = useState<Step>(1);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
-  const [selectedVerse, setSelectedVerse] = useState<{ bookId: string; chapter: number; verse: number } | null>(null);
+  const [selectedVerse, setSelectedVerse] = useState<{ bookId: string; bookName: string; chapter: number; verse: number; translation?: string; sourceType?: VerseSourceType } | null>(null);
+  const [selectedBook, setSelectedBook] = useState<{ id: string; name: string } | null>(null);
+  const [selectedTranslation, setSelectedTranslation] = useState<string>('crampon');
+  const [targetSourceType, setTargetSourceType] = useState<VerseSourceType>('bible');
+
+  // Effet pour détecter le succès et rafraîchir
+  useEffect(() => {
+    if (state?.success) {
+      // Rafraîchir les contributions après un court délai
+      setTimeout(() => {
+        onRefresh?.();
+        // Fermer la modale et réinitialiser
+        setStep(1);
+        setSelectedCategory(null);
+        setSelectedVerse(null);
+        setSelectedBook(null);
+        setSelectedTranslation('crampon');
+        onClose();
+      }, 1000);
+    }
+  }, [state, onRefresh, onClose]);
 
   // Reset le wizard à la fermeture
   useEffect(() => {
@@ -26,6 +49,9 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
       setStep(1);
       setSelectedCategory(null);
       setSelectedVerse(null);
+      setSelectedBook(null);
+      setSelectedTranslation('crampon');
+      setTargetSourceType('bible');
     }
   }, [isOpen]);
 
@@ -57,11 +83,28 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
     setStep(1);
     setSelectedCategory(null);
     setSelectedVerse(null);
+    setSelectedBook(null);
+    setSelectedTranslation('crampon');
+    setTargetSourceType('bible');
   };
 
-  const handleVerseSelected = (bookId: string, chapter: number, verse: number) => {
-    setSelectedVerse({ bookId, chapter, verse });
-  };
+  const handleVerseSelected = useCallback((
+    bookId: string,
+    bookName: string,
+    chapter: number,
+    verse: number,
+    translation?: string,
+    srcType?: VerseSourceType
+  ) => {
+    setSelectedVerse({ bookId, bookName, chapter, verse, translation, sourceType: srcType });
+    setSelectedBook({ id: bookId, name: bookName });
+    if (translation) {
+      setSelectedTranslation(translation);
+    }
+    if (srcType) {
+      setTargetSourceType(srcType);
+    }
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -107,7 +150,7 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
         </div>
 
         {/* Content */}
-        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto relative">
           {/* Error Message */}
           {state?.error && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2 mb-4">
@@ -120,14 +163,19 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
             </div>
           )}
 
-          {/* Success Message */}
+          {/* Success Overlay */}
           {state?.success && (
-            <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start gap-2 mb-4">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="mt-0.5 flex-shrink-0">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              <span>Contribution ajoutée avec succès !</span>
+            <div className="absolute inset-0 bg-white/95 rounded-lg flex items-center justify-center z-10 animate-in fade-in zoom-in duration-200">
+              <div className="text-center p-6">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-green-600">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-green-600 mb-2">Succès !</h3>
+                <p className="text-slate-600">Contribution ajoutée avec succès</p>
+                <p className="text-sm text-slate-500 mt-2">La modale va se fermer...</p>
+              </div>
             </div>
           )}
 
@@ -220,11 +268,19 @@ export function AddLinkModal({ verseId, isOpen, onClose }: AddLinkModalProps) {
               {selectedCategory === 'bible_link' && (
                 <>
                   <input type="hidden" name="link_type" value="parallel" />
-                  <input type="hidden" name="book_id" value={selectedVerse?.bookId || ''} />
-                  <input type="hidden" name="chapter" value={selectedVerse?.chapter || ''} />
-                  <input type="hidden" name="verse" value={selectedVerse?.verse || ''} />
+                  <input type="hidden" name="source_type" value={sourceType} />
+                  <input type="hidden" name="target_source_type" value={targetSourceType} />
+                  <input type="hidden" name="target_translation" value={selectedVerse?.translation || 'crampon'} />
+                  <input type="hidden" name="target_verse"
+                    value={selectedVerse ? `${selectedBook?.name || ''} ${selectedVerse.chapter}:${selectedVerse.verse}` : ''}
+                  />
 
-                  <VerseSelector onVerseSelected={handleVerseSelected} />
+                  <UniversalVerseSelector
+                    onVerseSelected={handleVerseSelected}
+                    selectedBook={selectedBook}
+                    initialTranslation="crampon"
+                    initialSourceType="bible"
+                  />
 
                   {/* Type de renvoi */}
                   <div>

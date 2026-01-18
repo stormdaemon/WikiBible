@@ -56,9 +56,28 @@
       "Bash(then echo '=== Nahoum in $chunk ===')",
       "Bash(then echo \"=== Joël in: $chunk ===\")",
       "Bash(node:*)",
-      "Bash(then echo:*)"
+      "Bash(then echo:*)",
+      "mcp__supabase__get_project",
+      "Bash(bunx tsc --noEmit)",
+      "mcp__supabase__list_projects",
+      "Bash(dir:*)",
+      "Bash(powershell:*)",
+      "Bash(npx supabase db remote commit:*)",
+      "Bash(where:*)",
+      "Bash(where pnpm)",
+      "Bash(bunx supabase db remote commit:*)",
+      "Bash(bunx --bun supabase db push:*)",
+      "Bash(bunx supabase db push:*)",
+      "Bash(bunx supabase link:*)",
+      "mcp__supabase__get_advisors",
+      "Bash(npx tsc:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

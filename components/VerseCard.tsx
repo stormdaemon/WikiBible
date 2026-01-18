@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import { InteractiveVerse } from '@/src/components/interactive-verse';
+import { ContributeVerseModal } from '@/components/ContributeVerseModal';
+import { EditVerseModal } from '@/components/EditVerseModal';
+import { CommunityTranslationModal } from '@/components/CommunityTranslationModal';
 import type { BibleEntity } from '@/app/actions';
 
 interface WikiLink {
@@ -22,6 +25,8 @@ interface VerseCardProps {
   translation: string;
   bookId?: string;
   translationId?: string;
+  isMissing?: boolean;
+  isContributive?: boolean;
   contributions?: {
     links: number;
     annotations: number;
@@ -40,16 +45,6 @@ interface VerseCardProps {
         book_name: string;
         chapter: number;
         verse: number;
-      };
-    }>;
-  };
-  allAnnotations?: {
-    annotations?: Array<{
-      id: string;
-      content: string;
-      author: {
-        username: string | null;
-        confession: string;
       };
     }>;
   };
@@ -96,8 +91,9 @@ export function VerseCard({
   translation,
   bookId,
   translationId,
+  isMissing = false,
+  isContributive = false,
   contributions,
-  allAnnotations,
   onOpenContributions,
   onOpenAddLink,
   onOpenTranslations,
@@ -108,7 +104,9 @@ export function VerseCard({
 }: VerseCardProps) {
   const [isPending, startTransition] = useTransition();
   const [isChanging, setIsChanging] = useState(false);
-  const [showHoverAnnotations, setShowHoverAnnotations] = useState(false);
+  const [showContributeModal, setShowContributeModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCommunityModal, setShowCommunityModal] = useState(false);
 
   const hasContributions =
     contributions &&
@@ -132,15 +130,43 @@ export function VerseCard({
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
 
   return (
+    <>
     <div
-      className="relative bg-white p-6 rounded-lg border border-border hover:border-accent transition-all hover:shadow-lg group/verse"
-      onMouseEnter={() => {
-        if (allAnnotations?.annotations && allAnnotations.annotations.length > 0 && window.innerWidth >= 1024) {
-          setShowHoverAnnotations(true);
-        }
-      }}
-      onMouseLeave={() => setShowHoverAnnotations(false)}
+      className={`relative p-6 rounded-lg border transition-all hover:shadow-lg group/verse ${
+        isMissing
+          ? 'bg-yellow-50 border-yellow-300 border-2 border-dashed'
+          : 'bg-white border-border hover:border-accent'
+      }`}
     >
+      {/* Message pour verset manquant */}
+      {isMissing && (
+        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="font-semibold text-yellow-900">Traduction manquante</p>
+              <p className="text-sm text-yellow-800">
+                Ce verset n'est pas encore disponible dans cette traduction.
+              </p>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => isContributive ? setShowCommunityModal(true) : setShowContributeModal(true)}
+                  className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium"
+                >
+                  ✏️ Contribuer une traduction
+                </button>
+              ) : (
+                <a
+                  href="/auth/login"
+                  className="mt-2 inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium"
+                >
+                  Connectez-vous pour contribuer
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Chevron gauche - Traduction précédente */}
       {onSwitchTranslation && (
         <button
@@ -209,7 +235,7 @@ export function VerseCard({
 
           {/* Traduction */}
           <span className="badge badge--default">
-            {translationId === 'jerusalem' ? 'Bible de Jérusalem' : 'Bible Crampon'}
+            {translation}
           </span>
         </div>
 
@@ -289,6 +315,21 @@ export function VerseCard({
             </button>
           )}
 
+          {/* Bouton Éditer le verset - SEULEMENT si connecté ET verset pas manquant */}
+          {isAuthenticated === true && !isMissing && (
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              title="Éditer ce verset"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span className="hidden sm:inline">Éditer</span>
+            </button>
+          )}
+
           {/* Si pas connecté - Bouton de connexion */}
           {isAuthenticated === false && (
             <a
@@ -316,28 +357,6 @@ export function VerseCard({
         />}"
       </div>
 
-      {/* Annotations au hover (PC uniquement) */}
-      {showHoverAnnotations && allAnnotations?.annotations && allAnnotations.annotations.length > 0 && (
-        <div className="hidden lg:block absolute left-0 right-0 top-full mt-2 z-50">
-          <div className="bg-white rounded-lg shadow-xl border border-accent p-4 mx-10">
-            <h4 className="text-sm font-bold text-accent mb-2">Annotations</h4>
-            <div className="space-y-2">
-              {allAnnotations.annotations.slice(0, 3).map((annotation) => (
-                <div key={annotation.id} className="text-sm text-slate-700 bg-slate-50 p-2 rounded">
-                  <p className="line-clamp-3">{annotation.content}</p>
-                  <p className="text-xs text-slate-500 mt-1">— {annotation.author.username || 'Anonyme'}</p>
-                </div>
-              ))}
-              {allAnnotations.annotations.length > 3 && (
-                <p className="text-xs text-slate-500 italic">
-                  +{allAnnotations.annotations.length - 3} autre(s) annotation(s)
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Badges confession des auteurs de liens */}
       {contributions?.linkDetails && contributions.linkDetails.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -361,5 +380,58 @@ export function VerseCard({
       )}
       </div>
     </div>
+
+    {/* Modal de contribution pour verset manquant */}
+    {isMissing && showContributeModal && (
+      <ContributeVerseModal
+        isOpen={showContributeModal}
+        onClose={() => setShowContributeModal(false)}
+        verseId={verseId}
+        bookName={bookName}
+        chapter={chapter}
+        verse={verseNumber}
+        translation={translationId || 'jerusalem'}
+        bookId={bookId}
+      />
+    )}
+
+    {/* Modal d'édition pour verset existant */}
+    {!isMissing && showEditModal && (
+      <EditVerseModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        verseId={verseId}
+        bookName={bookName}
+        chapter={chapter}
+        verse={verseNumber}
+        currentText={text}
+        translationId={translationId || 'jerusalem'}
+        onSuccess={() => {
+          // Force un refresh de la page pour afficher les nouvelles données
+          window.location.reload();
+        }}
+      />
+    )}
+
+    {/* Modal communautaire pour traductions manquantes (Bible Contributive) */}
+    {isMissing && isContributive && showCommunityModal && (
+      <CommunityTranslationModal
+        isOpen={showCommunityModal}
+        onClose={() => setShowCommunityModal(false)}
+        bookId={bookId || ''}  // Utilise bookId du prop, devrait venir de ChapterContent
+        bookName={bookName}
+        chapter={chapter}
+        verse={verseNumber}
+        translationId={translationId || 'osty'}
+        translationName={translation}
+        onSuccess={() => {
+          // Force un refresh de la page pour afficher les nouvelles données
+          window.location.reload();
+        }}
+      />
+    )}
+    </>
   );
 }
+
+export const VerseCardMemo = React.memo(VerseCard);

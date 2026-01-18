@@ -4,15 +4,23 @@ import { useState, useEffect } from 'react';
 import { getBooksAction } from '@/app/actions';
 
 interface VerseSelectorProps {
-  onVerseSelected: (bookId: string, chapter: number, verse: number) => void;
+  onVerseSelected: (bookId: string, bookName: string, chapter: number, verse: number, translation?: string) => void;
+  selectedBook?: { id: string; name: string } | null;
+  initialTranslation?: string;
 }
 
-export function VerseSelector({ onVerseSelected }: VerseSelectorProps) {
+export function VerseSelector({ onVerseSelected, selectedBook, initialTranslation = 'crampon' }: VerseSelectorProps) {
   const [books, setBooks] = useState<any[]>([]);
-  const [selectedBookId, setSelectedBookId] = useState<string>('');
+  const [selectedBookId, setSelectedBookId] = useState<string>(selectedBook?.id || '');
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
   const [selectedVerse, setSelectedVerse] = useState<number>(0);
+  const [selectedTranslation, setSelectedTranslation] = useState<string>(initialTranslation);
   const [verses, setVerses] = useState<any[]>([]);
+
+  const translations = [
+    { value: 'crampon', label: 'Bible Crampon (1923)' },
+    { value: 'jerusalem', label: 'Bible de Jérusalem (1973)' },
+  ];
 
   // Charger les livres au montage
   useEffect(() => {
@@ -53,14 +61,17 @@ export function VerseSelector({ onVerseSelected }: VerseSelectorProps) {
     }
   }, [selectedBookId, selectedChapter, books]);
 
-  const selectedBook = books.find(b => b.id === selectedBookId);
+  const currentBook = books.find(b => b.id === selectedBookId);
 
   // Notifier le parent quand les 3 valeurs sont sélectionnées
   useEffect(() => {
     if (selectedBookId && selectedChapter > 0 && selectedVerse > 0) {
-      onVerseSelected(selectedBookId, selectedChapter, selectedVerse);
+      const book = books.find(b => b.id === selectedBookId);
+      if (book) {
+        onVerseSelected(selectedBookId, book.name, selectedChapter, selectedVerse, selectedTranslation);
+      }
     }
-  }, [selectedBookId, selectedChapter, selectedVerse, onVerseSelected]);
+  }, [selectedBookId, selectedChapter, selectedVerse, selectedTranslation, onVerseSelected, books]);
 
   return (
     <div className="space-y-4">
@@ -86,6 +97,25 @@ export function VerseSelector({ onVerseSelected }: VerseSelectorProps) {
         </select>
       </div>
 
+      {/* Sélection de la traduction */}
+      <div>
+        <label htmlFor="translation" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          Traduction <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="translation"
+          name="translation"
+          value={selectedTranslation}
+          onChange={(e) => setSelectedTranslation(e.target.value)}
+          className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all bg-white"
+          required
+        >
+          {translations.map(t => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Sélection du chapitre */}
       <div>
         <label htmlFor="chapter" className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -101,7 +131,7 @@ export function VerseSelector({ onVerseSelected }: VerseSelectorProps) {
           required
         >
           <option value="">Choisir un chapitre...</option>
-          {selectedBook && Array.from({ length: selectedBook.chapters }, (_, i) => (
+          {currentBook && Array.from({ length: currentBook.chapters }, (_, i) => (
             <option key={i + 1} value={i + 1}>Chapitre {i + 1}</option>
           ))}
         </select>
@@ -132,7 +162,10 @@ export function VerseSelector({ onVerseSelected }: VerseSelectorProps) {
       {selectedVerse > 0 && (
         <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg">
           <p className="text-sm font-medium text-accent">
-            📍 {selectedBook?.name} {selectedChapter}:{selectedVerse}
+            📍 {currentBook?.name} {selectedChapter}:{selectedVerse}
+            <span className="ml-2 text-xs bg-white px-2 py-0.5 rounded">
+              {translations.find(t => t.value === selectedTranslation)?.label}
+            </span>
           </p>
         </div>
       )}

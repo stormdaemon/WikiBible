@@ -49,6 +49,7 @@ interface Annotation {
   content: string;
   created_at: string;
   author_id: string;
+  annotation_type?: 'annotation' | 'commentary' | 'meditation';
   likes_count?: number;
   user_profile?: {
     user_id: string;
@@ -98,7 +99,7 @@ interface AnnotationModalProps {
   onRefresh?: () => void;
 }
 
-type TabType = 'links' | 'wiki' | 'sources' | 'annotations';
+type TabType = 'links' | 'wiki' | 'sources' | 'annotations' | 'commentaries';
 
 export function AnnotationModal({
   verseId,
@@ -231,9 +232,28 @@ export function AnnotationModal({
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>Notes</span>
-            {contributions.annotations.length > 0 && (
+            {contributions.annotations.filter(a => !a.annotation_type || a.annotation_type === 'annotation').length > 0 && (
               <span className="bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full">
-                {contributions.annotations.length}
+                {contributions.annotations.filter(a => !a.annotation_type || a.annotation_type === 'annotation').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('commentaries')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 sm:py-3 font-medium text-[10px] sm:text-xs md:text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'commentaries'
+                ? 'border-accent text-accent bg-white'
+                : 'border-transparent text-slate-600 hover:text-slate-800 hover:bg-white/50'
+            }`}
+          >
+            <svg width="14" height="14" className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+            <span>Commentaires</span>
+            {contributions.annotations.filter(a => a.annotation_type === 'commentary' || a.annotation_type === 'meditation').length > 0 && (
+              <span className="bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full">
+                {contributions.annotations.filter(a => a.annotation_type === 'commentary' || a.annotation_type === 'meditation').length}
               </span>
             )}
           </button>
@@ -253,9 +273,20 @@ export function AnnotationModal({
           {activeTab === 'annotations' && (
             <AnnotationsTab
               verseId={verseId}
-              annotations={contributions.annotations}
+              annotations={contributions.annotations.filter(a => !a.annotation_type || a.annotation_type === 'annotation')}
               onRefresh={onRefresh}
               currentUserId={currentUserId}
+              title="Notes personnelles"
+            />
+          )}
+          {activeTab === 'commentaries' && (
+            <AnnotationsTab
+              verseId={verseId}
+              annotations={contributions.annotations.filter(a => a.annotation_type === 'commentary' || a.annotation_type === 'meditation')}
+              onRefresh={onRefresh}
+              currentUserId={currentUserId}
+              title="Commentaires & Méditations"
+              allowAdd={false}
             />
           )}
         </div>
@@ -364,10 +395,16 @@ function VerseLinkItem({
     ? `/apocrypha/${bookSlug}/${link.bible_verses?.chapter}`
     : `/bible/${bookSlug}/${link.bible_verses?.chapter}`;
 
+  // URL avec ancre vers le verset spécifique
+  const verseUrlWithAnchor = link.bible_verses
+    ? `${verseUrl}#verse-${link.bible_verses.verse}`
+    : verseUrl;
+
   // Formater le nom de la traduction pour l'affichage
   const getTranslationName = (translationId?: string) => {
     if (!translationId) return '';
     if (translationId === 'auto') return 'Apocryphe';
+    if (translationId === 'gemini-3-flash') return 'Apocryphe';
     if (translationId === 'original') return 'Texte original';
 
     // Noms des traductions bibliques
@@ -451,7 +488,7 @@ function VerseLinkItem({
                 <p className="text-slate-700 italic mb-2 text-xs sm:text-sm truncate">"{link.bible_verses.text}"</p>
                 {bookSlug && (
                   <a
-                    href={verseUrl}
+                    href={verseUrlWithAnchor}
                     className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-xs sm:text-sm font-medium"
                   >
                     <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -467,7 +504,7 @@ function VerseLinkItem({
                 <p className="text-yellow-700 text-xs sm:text-sm">Texte non disponible</p>
                 {bookSlug && (
                   <a
-                    href={verseUrl}
+                    href={verseUrlWithAnchor}
                     className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-xs sm:text-sm font-medium mt-2"
                   >
                     <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -622,11 +659,17 @@ function AnnotationsTab({
   annotations,
   onRefresh,
   currentUserId,
+  title = "Annotations",
+  defaultType = "annotation",
+  allowAdd = true,
 }: {
   verseId: string;
   annotations: Annotation[];
   onRefresh?: () => void;
   currentUserId?: string;
+  title?: string;
+  defaultType?: string;
+  allowAdd?: boolean;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -663,17 +706,21 @@ function AnnotationsTab({
           <svg width="36" height="36" className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto text-slate-300 mb-2 sm:mb-3">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <p className="text-sm sm:text-base text-slate-500">Aucune annotation</p>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">Partagez votre réflexion</p>
+          <p className="text-sm sm:text-base text-slate-500">Aucune {title.toLowerCase()}</p>
+          {allowAdd && (
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              {title === "Commentaires & Méditations" ? "Partagez votre commentaire ou méditation" : "Partagez votre réflexion"}
+            </p>
+          )}
         </div>
-        <AnnotationForm verseId={verseId} onSubmit={handleSubmit} pending={pending} error={error} />
+        {allowAdd && <AnnotationForm verseId={verseId} onSubmit={handleSubmit} pending={pending} error={error} defaultType={defaultType} />}
       </div>
     );
   }
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <AnnotationForm verseId={verseId} onSubmit={handleSubmit} pending={pending} error={error} />
+      {allowAdd && <AnnotationForm verseId={verseId} onSubmit={handleSubmit} pending={pending} error={error} defaultType={defaultType} />}
 
       {annotations.map((annotation) => (
         <AnnotationItem
@@ -695,6 +742,7 @@ function AnnotationForm({
   error,
   parentId = null,
   placeholder = "Ajoutez votre annotation...",
+  defaultType = "annotation",
 }: {
   verseId: string;
   onSubmit: (formData: FormData) => void | Promise<void>;
@@ -702,6 +750,7 @@ function AnnotationForm({
   error: string | null;
   parentId?: string | null;
   placeholder?: string;
+  defaultType?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -824,13 +873,26 @@ function AnnotationItem({ annotation, verseId, depth = 0, onRefresh, currentUser
       className={`p-2.5 sm:p-3 md:p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-200 hover:shadow-md transition-shadow ${depth > 0 ? 'ml-3 sm:ml-4 md:ml-6 mt-2 bg-white/70' : ''}`}
     >
       <div className="flex items-start justify-between mb-2 gap-2">
-        <span className="font-medium text-xs sm:text-sm text-primary flex items-center gap-1 sm:gap-1.5">
-          <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span className="truncate">{annotation.user_profile?.username || 'Anonyme'}</span>
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium text-xs sm:text-sm text-primary flex items-center gap-1 sm:gap-1.5">
+            <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span className="truncate">{annotation.user_profile?.username || 'Anonyme'}</span>
+          </span>
+          {/* Badge pour le type d'annotation */}
+          {annotation.annotation_type === 'commentary' && (
+            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">
+              Commentaire
+            </span>
+          )}
+          {annotation.annotation_type === 'meditation' && (
+            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+              Méditation
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <LikeButton
             contributionType="annotation"

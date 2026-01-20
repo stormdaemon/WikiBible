@@ -1,6 +1,10 @@
 import { getRecentArticlesAction } from '@/app/actions';
 import Link from 'next/link';
 
+// Configuration pour forcer le rendu dynamique (pas de cache)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function WikiPage() {
   const result = await getRecentArticlesAction(20);
 

@@ -195,48 +195,18 @@ export async function createArticleAction(state: ActionResult<{ slug: string }> 
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 
-  // Create article
-  const { data: article, error: articleError } = await supabase
-    .from('wiki_articles')
-    .insert({
-      title,
-      slug,
-      author_id: user.id,
-      is_published: true,
-    })
-    .select()
-    .single();
+  // Utiliser la RPC create_wiki_article
+  const { data, error } = await supabase.rpc('create_wiki_article', {
+    p_title: title,
+    p_slug: slug,
+    p_content: content,
+    p_author_id: user.id,
+    p_comment: comment || 'Initial version',
+  });
 
-  if (articleError) {
-    return { error: articleError.message };
+  if (error) {
+    return { error: error.message };
   }
-
-  // Create initial revision
-  const { error: revisionError } = await supabase
-    .from('wiki_revisions')
-    .insert({
-      article_id: article.id,
-      content,
-      comment: comment || 'Initial version',
-      author_id: user.id,
-    });
-
-  if (revisionError) {
-    return { error: revisionError.message };
-  }
-
-  // Update article with current_revision_id
-  const { error: updateError } = await supabase
-    .from('wiki_articles')
-    .update({ current_revision_id: article.id })
-    .eq('id', article.id);
-
-  if (updateError) {
-    return { error: updateError.message };
-  }
-
-  // Mettre à jour le score de l'utilisateur
-  await updateUserScore(user.id, 'wiki_article');
 
   revalidatePath(`/wiki/${slug}`);
   return { success: true, slug };
@@ -263,31 +233,17 @@ export async function updateArticleAction(state: ActionResult | null, formData: 
 
   const { article_id, content, comment, is_minor_edit } = validatedFields.data;
 
-  // Create new revision
-  const { data: revision, error: revisionError } = await supabase
-    .from('wiki_revisions')
-    .insert({
-      article_id,
-      content,
-      comment: comment || 'Edit',
-      author_id: user.id,
-      is_minor_edit: is_minor_edit || false,
-    })
-    .select()
-    .single();
+  // Utiliser la RPC update_wiki_article
+  const { data, error } = await supabase.rpc('update_wiki_article', {
+    p_article_id: article_id,
+    p_content: content,
+    p_author_id: user.id,
+    p_comment: comment || 'Edit',
+    p_is_minor_edit: is_minor_edit || false,
+  });
 
-  if (revisionError) {
-    return { error: revisionError.message };
-  }
-
-  // Update article with new current_revision_id
-  const { error: updateError } = await supabase
-    .from('wiki_articles')
-    .update({ current_revision_id: revision.id })
-    .eq('id', article_id);
-
-  if (updateError) {
-    return { error: updateError.message };
+  if (error) {
+    return { error: error.message };
   }
 
   revalidatePath(`/wiki/[slug]`);
@@ -429,40 +385,52 @@ export async function getVersesAction(bookId: string, chapter: number, translati
 }
 
 export async function getArticleAction(slug: string) {
-  const { createPublicClient } = await import('@/utils/supabase/server');
-  const supabase = createPublicClient();
+  const supabase = await createClient();
+
   const { data, error } = await supabase
-    .from('wiki_articles')
-    .select(`
-      *,
-      wiki_revisions (*),
-      bible_books (*)
-    `)
-    .eq('slug', slug)
-    .single();
+    .rpc('get_wiki_article_by_slug', { p_slug: slug });
 
   if (error) {
+    console.error('[getArticleAction] Error:', error);
     return { error: error.message };
   }
 
-  return { success: true, article: data };
+  // La RPC retourne un tableau, on prend le premier élément
+  const article = Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+  if (!article) {
+    return { error: 'Article not found' };
+  }
+
+  // Parser wiki_revisions si c'est une chaîne JSON
+  if (typeof article.wiki_revisions === 'string') {
+    try {
+      article.wiki_revisions = JSON.parse(article.wiki_revisions);
+    } catch (e) {
+      console.error('[getArticleAction] Error parsing wiki_revisions:', e);
+      article.wiki_revisions = [];
+    }
+  }
+
+  console.log('[getArticleAction] Article found:', article.title);
+
+  return { success: true, article };
 }
 
-export async function getRecentArticlesAction(limit = 10) {
-  const { createPublicClient } = await import('@/utils/supabase/server');
-  const supabase = createPublicClient();
+export async function getRecentArticlesAction(limit = 20) {
+  const supabase = await createClient();
+
   const { data, error } = await supabase
-    .from('wiki_articles')
-    .select('*')
-    .eq('is_published', true)
-    .order('updated_at', { ascending: false })
-    .limit(limit);
+    .rpc('get_published_wiki_articles', { p_limit: limit });
 
   if (error) {
+    console.error('[getRecentArticlesAction] Error:', error);
     return { error: error.message };
   }
 
-  return { success: true, articles: data };
+  console.log('[getRecentArticlesAction] Articles found:', data?.length || 0);
+
+  return { success: true, articles: data || [] };
 }
 
 // === VERSE LINKS & ANNOTATIONS ACTIONS ===
@@ -479,15 +447,21 @@ const CreateAnnotationSchema = z.object({
   verse_id: z.string().uuid(),
   content: z.string().min(1),
   parent_id: z.string().uuid().nullish(), // Accepte null et undefined
+  annotation_type: z.enum(['annotation', 'commentary', 'meditation']).default('annotation'),
 });
 
 const CreateExternalSourceSchema = z.object({
   title: z.string().min(1),
   author_name: z.string().optional(),
-  source_type: z.enum(['saint', 'father', 'council', 'catechism']),
+  source_type: z.enum(['saint', 'father', 'council', 'catechism', 'document']),
   reference: z.string().optional(),
-  content: z.string().min(1),
-});
+  content: z.string().optional(),
+  description: z.string().optional(),
+}).transform((data) => ({
+  ...data,
+  // Utiliser description comme fallback si content est vide
+  content: data.content || data.description || '',
+}));
 
 const LinkExternalSourceSchema = z.object({
   verse_id: z.string().uuid(),
@@ -844,6 +818,7 @@ export async function createAnnotationAction(
     verse_id: formData.get('verse_id'),
     content: formData.get('content'),
     parent_id: formData.get('parent_id'),
+    annotation_type: formData.get('annotation_type') || 'annotation',
   });
 
   console.log('[createAnnotationAction] validatedFields.success:', validatedFields.success);
@@ -865,8 +840,8 @@ export async function createAnnotationAction(
     return { error: 'Non authentifié' };
   }
 
-  const { verse_id, content, parent_id } = validatedFields.data;
-  console.log('[createAnnotationAction] About to insert:', { verse_id, content: content?.substring(0, 50), parent_id, author_id: user.id });
+  const { verse_id, content, parent_id, annotation_type } = validatedFields.data;
+  console.log('[createAnnotationAction] About to insert:', { verse_id, content: content?.substring(0, 50), parent_id, annotation_type, author_id: user.id });
 
   // Utiliser la fonction SECURITY DEFINER pour contourner RLS
   // La fonction insert_annotation() s'exécute avec les droits du propriétaire (postgres)
@@ -878,6 +853,7 @@ export async function createAnnotationAction(
       p_author_id: user.id,
       p_content: content,
       p_parent_id: parent_id || null,
+      p_annotation_type: annotation_type,
     });
 
   console.log('[createAnnotationAction] RPC result - annotationId:', annotationId);
@@ -987,6 +963,68 @@ export async function linkExternalSourceAction(
   }
 
   // Mettre à jour le score de l'utilisateur
+  await updateUserScore(user.id, 'external_source');
+
+  revalidatePath('/bible/[book]/[chapter]');
+  return { success: true };
+}
+
+/**
+ * Crée une source externe et la lie à un verset en une seule opération
+ */
+export async function createAndLinkExternalSourceAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const validatedFields = CreateExternalSourceSchema.safeParse({
+    title: formData.get('title'),
+    author_name: formData.get('author_name'),
+    source_type: formData.get('source_type'),
+    reference: formData.get('reference'),
+    content: formData.get('content'),
+    description: formData.get('description'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Champs invalides' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  // Créer la source externe
+  const { data: externalSource, error: createError } = await supabase
+    .from('external_sources')
+    .insert(validatedFields.data)
+    .select()
+    .single();
+
+  if (createError) {
+    return { error: createError.message };
+  }
+
+  // Créer le lien vers le verset
+  const verseId = formData.get('verse_id') as string;
+  const linkType = formData.get('link_type') as string || 'reference';
+
+  const { error: linkError } = await supabase
+    .from('verse_external_links')
+    .insert({
+      verse_id: verseId,
+      external_source_id: externalSource.id,
+      link_type: linkType as any,
+      author_id: user.id,
+    });
+
+  if (linkError) {
+    return { error: linkError.message };
+  }
+
+  // Mettre à jour le score de l'utilisateur (une seule fois pour la contribution complète)
   await updateUserScore(user.id, 'external_source');
 
   revalidatePath('/bible/[book]/[chapter]');
@@ -2141,6 +2179,69 @@ export async function updateVerseAction(
 }
 
 // ============================================================================
+// APOCRYPHA ACTIONS
+// ============================================================================
+
+const UpdateApocryphaVerseSchema = z.object({
+  verse_id: z.string().uuid(),
+  text_original: z.string().optional(),
+  text_fr: z.string().optional(),
+});
+
+/**
+ * Met à jour un verset apocryphe
+ */
+export async function updateApocryphaVerseAction(
+  state: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Vous devez être connecté pour modifier un verset.' };
+  }
+
+  const validatedFields = UpdateApocryphaVerseSchema.safeParse({
+    verse_id: formData.get('verse_id'),
+    text_original: formData.get('text_original'),
+    text_fr: formData.get('text_fr'),
+  });
+
+  if (!validatedFields.success) {
+    console.error('[updateApocryphaVerseAction] Validation error:', validatedFields.error.issues);
+    return { error: 'Champs invalides' };
+  }
+
+  const { verse_id, text_original, text_fr } = validatedFields.data;
+
+  // Au moins un des deux champs doit être fourni
+  if (!text_original && !text_fr) {
+    return { error: 'Au moins un champ doit être modifié' };
+  }
+
+  // Construire l'objet de mise à jour avec seulement les champs fournis
+  const updateData: any = {};
+  if (text_original !== undefined) updateData.text_original = text_original;
+  if (text_fr !== undefined) updateData.text_fr = text_fr;
+
+  const { error } = await supabase
+    .from('apocryphal_verses')
+    .update(updateData)
+    .eq('id', verse_id);
+
+  if (error) {
+    console.error('[updateApocryphaVerseAction] Update error:', error);
+    return { error: error.message || 'Erreur lors de la mise à jour du verset' };
+  }
+
+  revalidatePath('/apocrypha/[book]/[chapter]');
+  revalidatePath('/apocrypha');
+
+  return { success: true };
+}
+
+// ============================================================================
 // COMMUNITY TRANSLATION ACTIONS (Contributive Bible)
 // ============================================================================
 
@@ -3024,4 +3125,266 @@ export async function createUniversalLinkWithSourceAction(
   revalidatePath('/apocrypha/[slug]');
 
   return { success: true };
+}
+
+// === WIKI EDITOR ACTIONS ===
+
+export type BibleSourceType = 'bible' | 'contributive' | 'apocryphal';
+
+export interface BibleBook {
+  id: string;
+  name: string;
+  slug: string;
+  testament?: string;
+  position?: number;
+  sourceType?: 'bible' | 'apocryphal'; // Pour distinguer Bible normale vs Apocryphes
+}
+
+export interface VersePreview {
+  text: string;
+  reference: string;
+  sourceType: BibleSourceType;
+}
+
+/**
+ * Récupère tous les livres bibliques pour l'éditeur wiki
+ * Inclut: Bible normale + Apocryphes
+ */
+export async function getBibleBooksForEditorAction(): Promise<{
+  success: boolean;
+  books?: BibleBook[];
+  error?: string;
+}> {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  try {
+    // Récupérer les livres de la Bible normale
+    const { data: bibleBooks, error: bibleError } = await supabase
+      .from('bible_books')
+      .select('id, name, slug, testament, position')
+      .order('position');
+
+    if (bibleError) throw bibleError;
+
+    // Récupérer les livres apocryphes
+    const { data: apocryphalBooks, error: apocryphalError } = await supabase
+      .from('apocryphal_books')
+      .select('id, name_fr, slug')
+      .order('name_fr');
+
+    if (apocryphalError) throw apocryphalError;
+
+    // Combiner les deux listes
+    const allBooks: BibleBook[] = [
+      ...(bibleBooks || []).map((book) => ({
+        id: book.id,
+        name: book.name,
+        slug: book.slug,
+        testament: book.testament,
+        position: book.position,
+        sourceType: 'bible' as const,
+      })),
+      ...(apocryphalBooks || []).map((book) => ({
+        id: book.id,
+        name: book.name_fr,
+        slug: book.slug,
+        sourceType: 'apocryphal' as const,
+      })),
+    ];
+
+    return { success: true, books: allBooks };
+  } catch (error) {
+    console.error('[getBibleBooksForEditorAction] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
+    };
+  }
+}
+
+/**
+ * Récupère le preview d'un verset avec le choix de traduction
+ *
+ * @param sourceType - 'bible', 'contributive', ou 'apocryphal'
+ * @param bookSlug - Slug du livre
+ * @param chapter - Numéro de chapitre
+ * @param verse - Numéro de verset (optionnel)
+ * @param translationId - ID de traduction (pour Bible normale)
+ */
+export async function getVersePreviewAction(
+  sourceType: BibleSourceType,
+  bookSlug: string,
+  chapter: number,
+  verse?: number,
+  translationId: string = 'crampon'
+): Promise<{
+  success: boolean;
+  verse?: VersePreview;
+  error?: string;
+}> {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  try {
+    let verseData: any;
+    let reference: string;
+
+    if (sourceType === 'bible') {
+      // Récupérer dans bible_verses
+      const { data: book } = await supabase
+        .from('bible_books')
+        .select('id, name')
+        .eq('slug', bookSlug)
+        .single();
+
+      if (!book) throw new Error('Livre non trouvé');
+
+      const { data, error } = verse
+        ? await supabase
+            .from('bible_verses')
+            .select('text')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter)
+            .eq('verse', verse)
+            .eq('translation_id', translationId)
+            .single()
+        : await supabase
+            .from('bible_verses')
+            .select('text, verse')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter)
+            .eq('translation_id', translationId);
+
+      if (error) throw error;
+
+      reference = verse
+        ? `${book.name} ${chapter}:${verse}`
+        : `${book.name} ${chapter}`;
+
+      verseData = Array.isArray(data) ? data[0] : data;
+
+    } else if (sourceType === 'apocryphal') {
+      // Récupérer dans apocryphal_verses
+      const { data: book } = await supabase
+        .from('apocryphal_books')
+        .select('id, name_fr')
+        .eq('slug', bookSlug)
+        .single();
+
+      if (!book) throw new Error('Livre apocryphe non trouvé');
+
+      // NOTE: La colonne est 'book_id' et non 'apocryphal_book_id' dans apocryphal_verses
+      const { data, error } = verse
+        ? await supabase
+            .from('apocryphal_verses')
+            .select('text_fr')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter)
+            .eq('verse', verse)
+            .single()
+        : await supabase
+            .from('apocryphal_verses')
+            .select('text_fr, verse')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter);
+
+      if (error) throw error;
+
+      reference = verse
+        ? `${book.name_fr} ${chapter}:${verse}`
+        : `${book.name_fr} ${chapter}`;
+
+      verseData = Array.isArray(data) ? data[0] : data;
+
+    } else if (sourceType === 'contributive') {
+      // Pour la Bible contributive, on utilise bible_verses avec un flag
+      // ou une table spécifique si elle existe
+      const { data: book } = await supabase
+        .from('bible_books')
+        .select('id, name')
+        .eq('slug', bookSlug)
+        .single();
+
+      if (!book) throw new Error('Livre non trouvé');
+
+      const { data, error } = verse
+        ? await supabase
+            .from('bible_verses')
+            .select('text')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter)
+            .eq('verse', verse)
+            .eq('translation_id', 'contributive')
+            .single()
+        : await supabase
+            .from('bible_verses')
+            .select('text, verse')
+            .eq('book_id', book.id)
+            .eq('chapter', chapter)
+            .eq('translation_id', 'contributive');
+
+      if (error) {
+        // Fallback: essayer une autre traduction si contributive n'existe pas
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('bible_verses')
+          .select('text')
+          .eq('book_id', book.id)
+          .eq('chapter', chapter)
+          .eq('verse', verse)
+          .eq('translation_id', 'crampon')
+          .single();
+
+        if (fallbackError) throw fallbackError;
+        verseData = fallbackData;
+      } else {
+        verseData = Array.isArray(data) ? data[0] : data;
+      }
+
+      reference = verse
+        ? `${book.name} ${chapter}:${verse}`
+        : `${book.name} ${chapter}`;
+    }
+
+    if (!verseData) {
+      throw new Error('Verset non trouvé');
+    }
+
+    const text = sourceType === 'apocryphal' ? verseData.text_fr : verseData.text;
+
+    return {
+      success: true,
+      verse: {
+        text,
+        reference,
+        sourceType,
+      },
+    };
+  } catch (error) {
+    console.error('[getVersePreviewAction] Error:', error);
+
+    // Messages d'erreur plus spécifiques
+    let errorMessage = 'Erreur inconnue';
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+
+      if (message.includes('not found') || message.includes('non trouvé') || message.includes('n\'existe pas')) {
+        errorMessage = sourceType === 'apocryphal'
+          ? `Ce livre apocryphe ou ce verset n'existe pas dans la base de données.`
+          : `Ce verset n'existe pas dans la traduction "${translationId}". Essayez une autre traduction.`;
+      } else if (message.includes('permission') || message.includes('auth')) {
+        errorMessage = 'Erreur de permission. Veuillez vous reconnecter.';
+      } else if (message.includes('timeout')) {
+        errorMessage = 'Délai d\'attente dépassé. Réessayez.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
 }

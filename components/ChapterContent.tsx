@@ -160,8 +160,8 @@ export function ChapterContent({
 
           return (
             <div key={verse.id} className="relative">
-              {/* Contribution button for contributive mode */}
-              {isContributive && (
+              {/* Contribution button for contributive mode - SEULEMENT pour versets manquants */}
+              {isContributive && isMissing && (
                 <div className="absolute -top-3 -right-3 z-10">
                   <ContributionButton
                     verseId={verse.id}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useActionState } from 'react';
-import { createUniversalLinkWithSourceAction } from '@/app/actions';
+import { createUniversalLinkWithSourceAction, createAnnotationAction, createAndLinkExternalSourceAction } from '@/app/actions';
 import { UniversalVerseSelector } from './UniversalVerseSelector';
 import type { VerseSourceType } from './UniversalVerseSelector';
 
@@ -18,13 +18,23 @@ interface AddLinkModalProps {
 }
 
 export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType = 'bible' }: AddLinkModalProps) {
-  const [state, formAction, pending] = useActionState(createUniversalLinkWithSourceAction, null);
+  // État pour chaque type d'action
+  const [linkState, linkFormAction, linkPending] = useActionState(createUniversalLinkWithSourceAction, null);
+  const [annotationState, setAnnotationState] = useState<{ success?: boolean; error?: string } | null>(null);
+  const [externalState, setExternalState] = useState<{ success?: boolean; error?: string } | null>(null);
+  const [pending, setPending] = useState(false);
+
   const [step, setStep] = useState<Step>(1);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
   const [selectedVerse, setSelectedVerse] = useState<{ bookId: string; bookName: string; chapter: number; verse: number; translation?: string; sourceType?: VerseSourceType } | null>(null);
   const [selectedBook, setSelectedBook] = useState<{ id: string; name: string } | null>(null);
   const [selectedTranslation, setSelectedTranslation] = useState<string>('crampon');
   const [targetSourceType, setTargetSourceType] = useState<VerseSourceType>('bible');
+
+  // État unifié pour afficher les erreurs/succès
+  const state = selectedCategory === 'bible_link' ? linkState :
+                selectedCategory === 'commentary' ? annotationState :
+                selectedCategory === 'external_reference' ? externalState : null;
 
   // Effet pour détecter le succès et rafraîchir
   useEffect(() => {
@@ -38,6 +48,8 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
         setSelectedVerse(null);
         setSelectedBook(null);
         setSelectedTranslation('crampon');
+        setAnnotationState(null);
+        setExternalState(null);
         onClose();
       }, 1000);
     }
@@ -52,6 +64,9 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setSelectedBook(null);
       setSelectedTranslation('crampon');
       setTargetSourceType('bible');
+      setAnnotationState(null);
+      setExternalState(null);
+      setPending(false);
     }
   }, [isOpen]);
 
@@ -71,6 +86,52 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
+
+  // Handler pour soumettre une annotation (commentaire/méditation)
+  const handleAnnotationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    setAnnotationState(null);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      // Remplacer le champ manquant verse_id par source_verse_id
+      formData.set('verse_id', verseId);
+
+      const result = await createAnnotationAction(null, formData);
+      setAnnotationState(result);
+      if (!result.error) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      setAnnotationState({ error: 'Une erreur est survenue' });
+    } finally {
+      setPending(false);
+    }
+  };
+
+  // Handler pour soumettre une référence externe
+  const handleExternalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    setExternalState(null);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      // Ajouter verse_id manquant
+      formData.set('verse_id', verseId);
+
+      const result = await createAndLinkExternalSourceAction(null, formData);
+      setExternalState(result);
+      if (!result.error) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      setExternalState({ error: 'Une erreur est survenue' });
+    } finally {
+      setPending(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -248,7 +309,13 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
 
           {/* Step 2: Form based on category */}
           {step === 2 && selectedCategory && (
-            <form action={formAction} className="space-y-4">
+            <form
+              action={selectedCategory === 'bible_link' ? linkFormAction : undefined}
+              onSubmit={selectedCategory === 'commentary' ? handleAnnotationSubmit :
+                       selectedCategory === 'external_reference' ? handleExternalSubmit :
+                       undefined}
+              className="space-y-4"
+            >
               <input type="hidden" name="source_verse_id" value={verseId} />
               <input type="hidden" name="category" value={selectedCategory} />
 
@@ -339,6 +406,7 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
               {selectedCategory === 'commentary' && (
                 <>
                   <input type="hidden" name="link_type" value="commentary" />
+                  <input type="hidden" name="annotation_type" value="commentary" id="annotation_type_input" />
 
                   <div>
                     <label htmlFor="content" className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -360,11 +428,30 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                     </label>
                     <div className="flex gap-3">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="commentary_type" value="commentary" className="w-4 h-4 text-accent" defaultChecked />
+                        <input
+                          type="radio"
+                          name="commentary_type"
+                          value="commentary"
+                          className="w-4 h-4 text-accent"
+                          defaultChecked
+                          onChange={() => {
+                            const input = document.getElementById('annotation_type_input') as HTMLInputElement;
+                            if (input) input.value = 'commentary';
+                          }}
+                        />
                         <span>Commentaire</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="commentary_type" value="meditation" className="w-4 h-4 text-accent" />
+                        <input
+                          type="radio"
+                          name="commentary_type"
+                          value="meditation"
+                          className="w-4 h-4 text-accent"
+                          onChange={() => {
+                            const input = document.getElementById('annotation_type_input') as HTMLInputElement;
+                            if (input) input.value = 'meditation';
+                          }}
+                        />
                         <span>Méditation</span>
                       </label>
                     </div>
@@ -388,6 +475,19 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                       className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                       placeholder="Ex: Saint Augustin, Catéchisme de l'Église Catholique..."
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="author_name" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                      Nom de l'auteur (si différent du titre)
+                    </label>
+                    <input
+                      type="text"
+                      id="author_name"
+                      name="author_name"
+                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                      placeholder="Ex: Saint Augustin"
                     />
                   </div>
 
@@ -424,12 +524,12 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Description ou citation
+                    <label htmlFor="content" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                      Citation ou description
                     </label>
                     <textarea
-                      id="description"
-                      name="description"
+                      id="content"
+                      name="content"
                       rows={4}
                       className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                       placeholder="Citez le passage ou décrivez la référence..."
@@ -472,7 +572,7 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                 </button>
                 <button
                   type="submit"
-                  disabled={pending}
+                  disabled={pending || (selectedCategory === 'bible_link' && !selectedVerse)}
                   className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   {pending ? (
@@ -493,6 +593,18 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                   )}
                 </button>
               </div>
+
+              {/* Warning pour Bible Link si aucun verset sélectionné */}
+              {selectedCategory === 'bible_link' && !selectedVerse && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-start gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>Veuillez sélectionner un verset cible pour créer ce lien.</span>
+                </div>
+              )}
             </form>
           )}
         </div>

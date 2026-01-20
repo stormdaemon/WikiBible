@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { EditApocryphaVerseModal } from '@/components/EditApocryphaVerseModal';
 
 interface ApocryphaVerseCardProps {
   verseId: string;
@@ -31,6 +32,7 @@ export function ApocryphaVerseCard({
   contributions,
 }: ApocryphaVerseCardProps) {
   const [showOriginal, setShowOriginal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const hasContributions =
     contributions &&
@@ -45,6 +47,7 @@ export function ApocryphaVerseCard({
   };
 
   return (
+    <>
     <article
       id={`verse-${verseNumber}`}
       className="bg-white p-6 rounded-lg border border-border hover:border-accent transition-colors"
@@ -102,6 +105,21 @@ export function ApocryphaVerseCard({
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
               <span className="hidden sm:inline">Lier</span>
+            </button>
+          )}
+
+          {/* Bouton Éditer le verset - SEULEMENT si connecté */}
+          {isAuthenticated === true && (
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              title="Éditer ce verset"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span className="hidden sm:inline">Éditer</span>
             </button>
           )}
 
@@ -169,5 +187,24 @@ export function ApocryphaVerseCard({
         🔗 Lien permanent
       </a>
     </article>
+
+    {/* Modal d'édition */}
+    {showEditModal && (
+      <EditApocryphaVerseModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        verseId={verseId}
+        bookName={bookName}
+        chapter={chapter}
+        verse={verseNumber}
+        currentTextOriginal={textOriginal}
+        currentTextFr={textFr}
+        onSuccess={() => {
+          // Force un refresh de la page pour afficher les nouvelles données
+          window.location.reload();
+        }}
+      />
+    )}
+  </>
   );
 }

@@ -78,7 +78,7 @@ export default async function ApocryphaBookPage({ params }: ApocryphaBookPagePro
             {Object.keys(chapters).map((ch) => (
               <Link
                 key={ch}
-                href={`#chapter-${ch}`}
+                href={`/apocrypha/${slug}/${ch}`}
                 className="px-3 py-2 rounded text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Chapitre {ch}

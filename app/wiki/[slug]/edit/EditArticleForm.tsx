@@ -5,12 +5,29 @@ import { useActionState } from 'react';
 import Link from 'next/link';
 import type { Tables } from '@/lib/database.types';
 
+interface WikiRevision {
+  id: string;
+  article_id: string;
+  content: string;
+  comment: string | null;
+  author_id: string;
+  is_minor_edit: boolean;
+  created_at: string;
+}
+
+interface ArticleWithRevisions extends Tables<'wiki_articles'> {
+  wiki_revisions: WikiRevision[];
+}
+
 interface EditArticleFormProps {
-  article: Tables<'wiki_articles'>;
+  article: ArticleWithRevisions;
 }
 
 export default function EditArticleForm({ article }: EditArticleFormProps) {
   const [state, formAction] = useActionState(updateArticleAction, null as Awaited<ReturnType<typeof updateArticleAction>> | null);
+
+  // Récupérer le contenu de la révision la plus récente
+  const currentContent = article.wiki_revisions?.[0]?.content || '';
 
   return (
     <div className="card">
@@ -28,6 +45,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             rows={15}
             className="form__textarea"
             placeholder="# Introduction&#10;&#10;Rédigez votre article ici...&#10;&#10;Vous pouvez utiliser des liens wiki comme [[Jean 3:16]] ou [[Article Title]]"
+            defaultValue={currentContent}
           />
           <p className="text-xs text-secondary mt-2">
             💡 Utilisez [[Livre Chapitre:Verset]] pour les références bibliques (ex: [[Jean 3:16]])

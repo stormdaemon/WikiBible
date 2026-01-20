@@ -18,7 +18,7 @@ export function ApocryphaGrid({ books }: ApocryphaGridProps) {
       {books.map((book) => (
         <Link
           key={book.id}
-          href={`/apocrypha/${book.slug}`}
+          href={`/apocrypha/${book.slug}/1`}
           className="card card--clickable hover:border-accent transition-colors"
         >
           <div className="p-4">

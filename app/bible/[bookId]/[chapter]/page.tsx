@@ -2,6 +2,7 @@ import { getBookAction, getChapterAction } from '@/app/actions';
 import Link from 'next/link';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
+import { VerseAnchorScroll } from '@/components/VerseAnchorScroll';
 import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -44,9 +45,10 @@ export default async function ChapterPage({
 
   return (
     <main className="min-h-screen">
+      {/* Gestion du scroll vers l'ancre de verset */}
+      <VerseAnchorScroll />
+
       {/* Header */}
-
-
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm">
@@ -60,12 +62,23 @@ export default async function ChapterPage({
         </nav>
 
         {/* Title */}
-        <h1 className="text-4xl font-serif text-primary mb-8">
+        <h1 className="text-4xl font-serif text-primary mb-4">
           {book.name} - Chapitre {chapter}
         </h1>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-border">
+        {/* Chapter Navigation en haut */}
+        <div className="mb-6 pb-4 border-b border-border">
+          <ChapterNavigation
+            bookId={book.id}
+            bookSlug={bookId}
+            chapter={chapter}
+            totalChapters={book.chapters}
+            basePath="/bible"
+          />
+        </div>
+
+        {/* Navigation précédent/suivant */}
+        <div className="flex justify-between items-center mb-8">
           {chapter > 1 ? (
             <Link
               href={`/bible/${bookId}/${chapter - 1}`}

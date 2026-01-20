@@ -6,8 +6,9 @@ import EditArticleForm from './EditArticleForm';
 export default async function EditArticlePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const supabase = await createClient();
 
   // Gestion robuste de l'authentification
@@ -20,10 +21,10 @@ export default async function EditArticlePage({
   }
 
   if (!user) {
-    redirect(`/auth/login?redirect=/wiki/${params.slug}/edit`);
+    redirect(`/auth/login?redirect=/wiki/${slug}/edit`);
   }
 
-  const result = await getArticleAction(params.slug);
+  const result = await getArticleAction(slug);
 
   if (!result.success || !result.article) {
     notFound();

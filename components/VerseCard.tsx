@@ -132,6 +132,7 @@ export function VerseCard({
   return (
     <>
     <div
+      id={`verse-${verseNumber}`}
       className={`relative p-6 rounded-lg border transition-all hover:shadow-lg group/verse ${
         isMissing
           ? 'bg-yellow-50 border-yellow-300 border-2 border-dashed'

@@ -9,7 +9,7 @@ interface VerseSelectorProps {
   onVerseSelected: (bookId: string, bookName: string, chapter: number, verse: number, translation?: string, sourceType?: VerseSourceType) => void;
   selectedBook?: { id: string; name: string } | null;
   initialTranslation?: string;
-  initialSourceType?: VerseSourceType;
+  initialSourceType?: 'bible' | 'apocryphal'; // Only 2 options in UI
 }
 
 interface Translation {
@@ -24,7 +24,7 @@ export function UniversalVerseSelector({
   initialTranslation = 'crampon',
   initialSourceType = 'bible'
 }: VerseSelectorProps) {
-  const [sourceType, setSelectedSourceType] = useState<VerseSourceType>(initialSourceType);
+  const [sourceType, setSelectedSourceType] = useState<VerseSourceType>(initialSourceType === 'apocryphal' ? 'apocryphal' : 'bible');
   const [books, setBooks] = useState<any[]>([]);
   const [selectedBookId, setSelectedBookId] = useState<string>(selectedBook?.id || '');
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
@@ -66,6 +66,7 @@ export function UniversalVerseSelector({
   useEffect(() => {
     const loadBooks = async () => {
       if (sourceType === 'bible' || sourceType === 'contributive') {
+        // Bible regroupe officielle + contributive
         const result = await getBooksAction();
         if (result.success && result.books) {
           setBooks(result.books);
@@ -88,10 +89,8 @@ export function UniversalVerseSelector({
     setSelectedVerse(0);
     setVerses([]);
     // Réinitialiser la traduction selon le nouveau type
-    if (sourceType === 'bible') {
-      setSelectedTranslation('crampon');
-    } else if (sourceType === 'contributive') {
-      // La bible contributive utilise les mêmes traductions que la bible classique
+    if (sourceType === 'bible' || sourceType === 'contributive') {
+      // Bible regroupe officielle + contributive, utilise crampon par défaut
       setSelectedTranslation('crampon');
     } else if (sourceType === 'apocryphal') {
       setSelectedTranslation('auto');
@@ -141,7 +140,8 @@ export function UniversalVerseSelector({
   const getTranslations = () => {
     switch (sourceType) {
       case 'bible':
-        return bibleTranslations;
+        // Bible regroupe officielle + communautaire
+        return [...bibleTranslations, ...contributiveTranslations];
       case 'contributive':
         return contributiveTranslations;
       case 'apocryphal':
@@ -158,32 +158,19 @@ export function UniversalVerseSelector({
         <label htmlFor="source_type" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Source <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setSelectedSourceType('bible')}
             className={`p-3 border-2 rounded-lg text-center transition-all ${
-              sourceType === 'bible'
+              sourceType === 'bible' || sourceType === 'contributive'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-slate-200 hover:border-accent/50 hover:bg-accent/5'
             }`}
           >
             <div className="text-2xl mb-1">📖</div>
             <div className="text-sm font-medium">Bible</div>
-            <div className="text-xs text-slate-500">Officielle</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedSourceType('contributive')}
-            className={`p-3 border-2 rounded-lg text-center transition-all ${
-              sourceType === 'contributive'
-                ? 'border-purple-500 bg-purple-50 text-purple-700'
-                : 'border-slate-200 hover:border-purple-300 hover:bg-purple-5'
-            }`}
-          >
-            <div className="text-2xl mb-1">✍️</div>
-            <div className="text-sm font-medium">Bible</div>
-            <div className="text-xs text-slate-500">Contributive</div>
+            <div className="text-xs text-slate-500">Officielle & Communautaire</div>
           </button>
           <button
             type="button"
@@ -196,7 +183,7 @@ export function UniversalVerseSelector({
           >
             <div className="text-2xl mb-1">📜</div>
             <div className="text-sm font-medium">Apocryphes</div>
-            <div className="text-xs text-slate-500">Textes anciens</div>
+            <div className="text-xs text-slate-500">Textes deutérocanoniques</div>
           </button>
         </div>
       </div>
@@ -287,13 +274,11 @@ export function UniversalVerseSelector({
       {/* Résumé de la sélection */}
       {selectedVerse > 0 && (
         <div className={`p-3 border rounded-lg ${
-          sourceType === 'bible' ? 'bg-accent/10 border-accent/30' :
-          sourceType === 'contributive' ? 'bg-purple-50 border-purple-300' :
+          sourceType === 'bible' || sourceType === 'contributive' ? 'bg-accent/10 border-accent/30' :
           'bg-amber-50 border-amber-300'
         }`}>
           <p className={`text-sm font-medium ${
-            sourceType === 'bible' ? 'text-accent' :
-            sourceType === 'contributive' ? 'text-purple-700' :
+            sourceType === 'bible' || sourceType === 'contributive' ? 'text-accent' :
             'text-amber-700'
           }`}>
             📍 {currentBook?.name} {selectedChapter}:{selectedVerse}
@@ -301,13 +286,10 @@ export function UniversalVerseSelector({
               {getTranslations().find(t => t.id === selectedTranslation)?.name}
             </span>
             <span className={`ml-2 text-xs px-2 py-0.5 rounded ${
-              sourceType === 'bible' ? 'bg-accent text-white' :
-              sourceType === 'contributive' ? 'bg-purple-500 text-white' :
+              sourceType === 'bible' || sourceType === 'contributive' ? 'bg-accent text-white' :
               'bg-amber-500 text-white'
             }`}>
-              {sourceType === 'bible' ? 'Bible' :
-               sourceType === 'contributive' ? 'Contributive' :
-               'Apocryphe'}
+              {sourceType === 'bible' || sourceType === 'contributive' ? 'Bible' : 'Apocryphe'}
             </span>
           </p>
         </div>

@@ -338,6 +338,7 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
 
             {/* Preview du verset - uniquement si verset sélectionné */}
             {selectedBook && selectedChapter && selectedVerse && (
+              <>
                 <div className="bg-slate-100 px-3 py-2 border-b border-slate-200">
                   <p className="text-sm font-medium text-slate-700">Aperçu</p>
                 </div>
@@ -363,7 +364,7 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
                     </div>
                   ) : null}
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>

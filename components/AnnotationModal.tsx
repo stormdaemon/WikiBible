@@ -159,7 +159,7 @@ export function AnnotationModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex overflow-x-auto scrollbar-hide border-b border-slate-200 bg-slate-50 -mx-2 sm:mx-0 px-2 sm:px-0">
+        <div className="flex flex-wrap border-b border-slate-200 bg-slate-50">
           <button
             onClick={() => setActiveTab('links')}
             className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 sm:py-3 font-medium text-[10px] sm:text-xs md:text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${

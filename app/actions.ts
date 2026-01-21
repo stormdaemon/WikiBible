@@ -109,6 +109,22 @@ export async function registerAction(state: ActionResult | null, formData: FormD
     return { error: error.message };
   }
 
+  // Créer automatiquement le profil dans user_profiles
+  if (data.user) {
+    const profileError = await supabase
+      .from('user_profiles')
+      .insert({
+        user_id: data.user.id,
+        username: null, // L'utilisateur pourra le changer plus tard
+        confession: confession || 'catholic',
+        full_name: name,
+      });
+
+    if (profileError.error) {
+      console.error('Erreur lors de la création du profil:', profileError.error);
+    }
+  }
+
   return { success: true, data };
 }
 
@@ -145,15 +161,37 @@ export async function updateProfileAction(state: ActionResult | null, formData: 
     return { error: 'Non autorisé' };
   }
 
-  const { error } = await supabase
+  // Vérifier d'abord si le profil existe
+  const { data: existingProfile } = await supabase
     .from('user_profiles')
-    .upsert({
-      user_id,
-      username,
-      confession,
-      bio,
-      updated_at: new Date().toISOString(),
-    });
+    .select('id')
+    .eq('user_id', user_id)
+    .maybeSingle();
+
+  let error;
+  if (existingProfile) {
+    // Le profil existe : faire un UPDATE
+    ({ error } = await supabase
+      .from('user_profiles')
+      .update({
+        username,
+        confession,
+        bio,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user_id));
+  } else {
+    // Le profil n'existe pas : faire un INSERT
+    ({ error } = await supabase
+      .from('user_profiles')
+      .insert({
+        user_id,
+        username,
+        confession,
+        bio,
+        updated_at: new Date().toISOString(),
+      }));
+  }
 
   if (error) {
     return { error: error.message };

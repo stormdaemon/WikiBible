@@ -21,29 +21,29 @@ export function LeaderboardCard({ rank, entry, isCurrentUser = false }: Leaderbo
 
   return (
     <div
-      className={`card p-4 flex items-center gap-4 transition-all ${
+      className={`card p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 transition-all ${
         isCurrentUser ? 'border-accent border-2 bg-accent/5' : ''
       }`}
     >
-      <div className="text-2xl w-12 text-center">{medal}</div>
+      <div className="text-xl sm:text-2xl w-12 text-center">{medal}</div>
 
-      <div className="flex-1">
+      <div className="flex-1 w-full">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-lg text-primary">
+          <h3 className="font-bold text-base sm:text-lg text-primary">
             {entry.user_profiles?.username || 'Anonyme'}
           </h3>
           {isCurrentUser && (
             <span className="badge badge--accent text-xs">Vous</span>
           )}
         </div>
-        <div className="flex gap-4 mt-1 text-sm text-secondary">
-          <span>{entry.total_contributions} contributions</span>
-          <span>{entry.total_likes_received} j'aime reçus</span>
+        <div className="flex gap-3 sm:gap-4 mt-1 text-xs sm:text-sm text-secondary">
+          <span>{entry.total_contributions} contrib.</span>
+          <span>{entry.total_likes_received} j'aime</span>
         </div>
       </div>
 
-      <div className="text-right">
-        <div className="text-2xl font-bold text-primary">{entry.total_hearts}</div>
+      <div className="text-right w-full sm:w-auto flex sm:block justify-between sm:justify-start items-center gap-2">
+        <div className="text-xl sm:text-2xl font-bold text-primary">{entry.total_hearts}</div>
         <div className="text-xs text-secondary">points</div>
       </div>
     </div>

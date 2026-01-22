@@ -16,9 +16,70 @@ const libreBaskerville = Libre_Baskerville({
   style: ["normal", "italic"],
 });
 
+const siteUrl = "https://wikibible.fr";
+const ogImage = "https://res.cloudinary.com/dgjsq5fnl/image/upload/v1769107139/wikibible_logo_qikkaj.jpg";
+
 export const metadata: Metadata = {
-  title: "WikiBible - La Bible Catholique (73 Livres)",
-  description: "Encyclopédie biblique catholique complète avec le canon de 73 livres",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "WikiBible - La Bible Catholique (73 Livres)",
+    template: "%s | WikiBible",
+  },
+  description: "Encyclopédie biblique catholique complète avec le canon de 73 livres. Explorez les Écritures, contribuez et partagez la foi.",
+  keywords: ["Bible", "Catholique", "73 livres", "Ancien Testament", "Nouveau Testament", "Deutérocanoniques", "Wiki", "Encyclopédie biblique"],
+  authors: [{ name: "Parole et Partage" }],
+  creator: "Parole et Partage",
+  publisher: "WikiBible",
+
+  // Open Graph - Facebook, Messenger, WhatsApp, LinkedIn, etc.
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: siteUrl,
+    siteName: "WikiBible",
+    title: "WikiBible - La Bible Catholique (73 Livres)",
+    description: "Encyclopédie biblique catholique complète avec le canon de 73 livres. Explorez les Écritures, contribuez et partagez la foi.",
+    images: [
+      {
+        url: ogImage,
+        secureUrl: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "WikiBible - Encyclopédie biblique catholique",
+        type: "image/jpeg",
+      },
+    ],
+  },
+
+  // Twitter Cards - Twitter/X
+  twitter: {
+    card: "summary_large_image",
+    site: "@WikiBible",
+    creator: "@WikiBible",
+    title: "WikiBible - La Bible Catholique (73 Livres)",
+    description: "Encyclopédie biblique catholique complète avec le canon de 73 livres.",
+    images: [ogImage],
+  },
+
+  // Apple/iMessage
+  appleWebApp: {
+    capable: true,
+    title: "WikiBible",
+    statusBarStyle: "black-translucent",
+  },
+
+  // Autres métadonnées pour compatibilité maximale
+  other: {
+    "msapplication-TileImage": ogImage,
+    "og:image:url": ogImage,
+    "og:image:secure_url": ogImage,
+  },
+
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 import Header from '@/components/Header';

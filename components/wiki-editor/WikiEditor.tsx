@@ -3,29 +3,40 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import CharacterCount from '@tiptap/extension-character-count';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { VerseExtension } from './extensions/verse-extension';
 import EditorToolbar from './EditorToolbar';
 import VersePicker from './VersePicker';
-import { type BibleSourceType } from '@/app/actions';
+import { type BibleSourceType, searchWikiArticlesAction } from '@/app/actions';
+
+interface WikiArticle {
+  id: string;
+  title: string;
+  slug: string;
+}
 
 interface WikiEditorProps {
   content: string;
   onChange: (content: string, markdown: string) => void;
   placeholder?: string;
+  minHeight?: string;
 }
 
 /**
- * WikiEditor - Éditeur WYSIWYG basé sur TipTap
- *
- * Phase 2 complète avec :
- * - Toolbar de formatage
- * - VersePicker pour insérer des versets
- * - Extensions personnalisées
+ * WikiEditor - Éditeur WYSIWYG moderne basé sur TipTap
  */
-export default function WikiEditor({ content, onChange, placeholder = 'Écrivez votre article...' }: WikiEditorProps) {
+export default function WikiEditor({
+  content,
+  onChange,
+  placeholder = 'Écrivez votre article...',
+  minHeight = '400px'
+}: WikiEditorProps) {
   const [isClient, setIsClient] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
+  const [showWikiLinkModal, setShowWikiLinkModal] = useState(false);
+  const [wikiLinkText, setWikiLinkText] = useState('');
+  const [searchResults, setSearchResults] = useState<WikiArticle[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -56,7 +67,8 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] px-4 py-3',
+        class: `prose prose-slate max-w-none focus:outline-none px-5 py-4`,
+        style: `min-height: ${minHeight}`,
       },
     },
   });
@@ -73,40 +85,33 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
     }
   }, [content, editor]);
 
-  // Insérer une référence de verset
-  const handleInsertVerse = (reference: string, sourceType: BibleSourceType) => {
-    if (!editor) return;
+  // Recherche d'articles wiki avec debounce
+  useEffect(() => {
+    if (!wikiLinkText.trim() || wikiLinkText.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
 
-    // Parser la référence
-    const match = reference.match(/^([A-Za-zÀ-ÿ\s]+)\s+(\d+):(\d+)$/);
-    if (!match) return;
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      const result = await searchWikiArticlesAction(wikiLinkText.trim());
+      if (result.success && result.articles) {
+        setSearchResults(result.articles);
+      }
+      setIsSearching(false);
+    }, 300);
 
-    const [, book, chapter, verse] = match;
-
-    // Créer le lien avec le bon format (utiliser wiki-parser pour le slug)
-    const bookSlug = bookToSlug(book.trim());
-    const href = `/bible/${bookSlug}/${chapter}/${verse}`;
-    const verseNum = parseInt(verse);
-
-    // Insérer un lien stylé au lieu d'un Node complexe
-    const html = `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md text-sm font-medium hover:bg-amber-200 cursor-pointer transition-colors border border-amber-300" data-verse-ref="${reference}">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
-        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
-      <a href="${href}" class="no-underline">${reference}</a>
-    </span>`;
-
-    editor.commands.insertContent(html);
-  };
+    return () => clearTimeout(timer);
+  }, [wikiLinkText]);
 
   // Fonction utilitaire pour convertir un nom de livre en slug
-  function bookToSlug(bookName: string): string {
+  const bookToSlug = useCallback((bookName: string): string => {
     const bookMapping: Record<string, string> = {
       'Genèse': 'genese',
       'Exode': 'exode',
       'Lévitique': 'levitique',
       'Nombres': 'nombres',
-      'Deutéronome': 'deuterome',
+      'Deutéronome': 'deuteronome',
       'Josué': 'josue',
       'Juges': 'juges',
       'Ruth': 'ruth',
@@ -120,9 +125,9 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
       'Néhémie': 'nehemie',
       'Tobie': 'tobie',
       'Judith': 'judith',
-      'Esther': 'ester',
-      '1 Maccabées': '1-macchabees',
-      '2 Maccabées': '2-macchabees',
+      'Esther': 'esther',
+      '1 Maccabées': '1-maccabees',
+      '2 Maccabées': '2-maccabees',
       'Job': 'job',
       'Psaumes': 'psaumes',
       'Proverbes': 'proverbes',
@@ -130,13 +135,13 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
       'Cantique des Cantiques': 'cantique',
       'Sagesse': 'sagesse',
       'Siracide': 'siracide',
-      'Isaïe': 'eesaie',
+      'Isaïe': 'isaie',
       'Jérémie': 'jeremie',
       'Lamentations': 'lamentations',
       'Baruch': 'baruch',
       'Ézéchiel': 'ezechiel',
       'Daniel': 'daniel',
-      'Osée': 'oslee',
+      'Osée': 'osee',
       'Joël': 'joel',
       'Amos': 'amos',
       'Abdias': 'abdias',
@@ -160,8 +165,8 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
       'Éphésiens': 'ephesiens',
       'Philippiens': 'philippiens',
       'Colossiens': 'colossiens',
-      '1 Thessaloniciens': '1-thesaloniciens',
-      '2 Thessaloniciens': '2-thesaloniciens',
+      '1 Thessaloniciens': '1-thessaloniciens',
+      '2 Thessaloniciens': '2-thessaloniciens',
       '1 Timothée': '1-timothee',
       '2 Timothée': '2-timothee',
       'Tite': 'tite',
@@ -186,32 +191,75 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
     );
-  }
+  }, []);
 
-  // Insérer un lien wiki (pour l'instant simple)
-  const handleInsertWikiLink = () => {
+  // Insérer une référence de verset
+  const handleInsertVerse = useCallback((reference: string, sourceType: BibleSourceType) => {
     if (!editor) return;
-    // Pour l'instant, on insère un template
-    const linkText = prompt('Entrez le titre de l\'article wiki:');
-    if (linkText) {
-      editor.commands.insertContent(
-        `<a href="/wiki/${linkText.toLowerCase().replace(/\s+/g, '-')}" data-type="wiki-link" class="text-accent hover:text-accent/80 underline">${linkText}</a>`
-      );
-    }
-  };
+
+    // Parser la référence
+    const match = reference.match(/^([A-Za-zÀ-ÿ\s0-9]+)\s+(\d+):(\d+)$/);
+    if (!match) return;
+
+    const [, book, chapter, verse] = match;
+
+    // Créer le lien avec le bon format
+    const bookSlug = bookToSlug(book.trim());
+    const href = `/bible/${bookSlug}/${chapter}#verse-${verse}`;
+
+    // Insérer un lien stylé
+    const html = `<a href="${href}" class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-sm font-medium hover:bg-amber-200 no-underline border border-amber-200" data-verse-ref="${reference}">${reference}</a>&nbsp;`;
+
+    editor.commands.insertContent(html);
+  }, [editor, bookToSlug]);
+
+  // Générer le slug à partir du titre
+  const generateSlug = useCallback((text: string): string => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }, []);
+
+  // Insérer un lien wiki
+  const handleInsertWikiLink = useCallback((title: string, slug?: string) => {
+    if (!editor || !title.trim()) return;
+
+    const finalSlug = slug || generateSlug(title);
+
+    editor.commands.insertContent(
+      `<a href="/wiki/${finalSlug}" class="text-blue-600 hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-500" data-wiki-link="${finalSlug}">${title}</a>&nbsp;`
+    );
+
+    setWikiLinkText('');
+    setSearchResults([]);
+    setShowWikiLinkModal(false);
+  }, [editor, generateSlug]);
+
+  // Sélectionner un article depuis les résultats de recherche
+  const handleSelectArticle = useCallback((article: WikiArticle) => {
+    handleInsertWikiLink(article.title, article.slug);
+  }, [handleInsertWikiLink]);
 
   if (!isClient || !editor) {
     return (
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <div className="p-4 bg-slate-50 border-b border-slate-200">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="p-3 bg-slate-50 border-b border-slate-200">
           <div className="animate-pulse flex gap-2">
-            <div className="w-8 h-8 bg-slate-300 rounded" />
-            <div className="w-8 h-8 bg-slate-300 rounded" />
-            <div className="w-8 h-8 bg-slate-300 rounded" />
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="w-9 h-9 bg-slate-200 rounded-lg" />
+            ))}
           </div>
         </div>
-        <div className="p-4 min-h-[400px] font-mono text-sm text-slate-400">
-          Chargement de l'éditeur...
+        <div className="p-5 min-h-[400px] flex items-center justify-center">
+          <div className="flex items-center gap-3 text-slate-400">
+            <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 12a9 9 0 11-6.219-8.56" />
+            </svg>
+            <span>Chargement de l'éditeur...</span>
+          </div>
         </div>
       </div>
     );
@@ -219,16 +267,39 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
 
   return (
     <div className="wiki-editor">
-      {/* Toolbar */}
-      <EditorToolbar
-        editor={editor}
-        onInsertVerse={() => setShowVersePicker(true)}
-        onInsertWikiLink={handleInsertWikiLink}
-      />
+      {/* Container principal avec bordure */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        {/* Toolbar */}
+        <EditorToolbar
+          editor={editor}
+          onInsertVerse={() => setShowVersePicker(true)}
+          onInsertWikiLink={() => setShowWikiLinkModal(true)}
+        />
 
-      {/* Zone d'édition */}
-      <div className="bg-white border border-t-0 border-slate-200 rounded-b-lg overflow-hidden">
-        <EditorContent editor={editor} />
+        {/* Zone d'édition */}
+        <div className="border-t border-slate-100">
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+
+      {/* Barre d'info */}
+      <div className="mt-3 flex items-center justify-between text-xs text-slate-500 px-1">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-full">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Éditeur actif
+          </span>
+          <span className="hidden sm:flex items-center gap-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            Enregistrement auto
+          </span>
+        </div>
+        <span className="px-2 py-1 bg-slate-100 rounded-full font-medium">
+          {editor.storage.characterCount?.characters() || 0} caractères
+        </span>
       </div>
 
       {/* Verse Picker Modal */}
@@ -239,17 +310,176 @@ export default function WikiEditor({ content, onChange, placeholder = 'Écrivez 
         />
       )}
 
-      {/* Info bar */}
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-        <span className="flex items-center gap-1">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
-          Mode WYSIWYG
-        </span>
-        <span>{editor.storage.characterCount?.characters() || 0} caractères</span>
-      </div>
+      {/* Wiki Link Modal */}
+      {showWikiLinkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowWikiLinkModal(false);
+              setWikiLinkText('');
+              setSearchResults([]);
+            }}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-xl">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-primary">Insérer un lien Wiki</h3>
+                    <p className="text-sm text-slate-600">Vers un article existant ou nouveau</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowWikiLinkModal(false);
+                    setWikiLinkText('');
+                    setSearchResults([]);
+                  }}
+                  className="p-2 hover:bg-white/80 rounded-xl transition-colors"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Contenu */}
+            <div className="p-5 space-y-4">
+              {/* Champ de recherche */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Rechercher ou créer un article
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={wikiLinkText}
+                    onChange={(e) => setWikiLinkText(e.target.value)}
+                    placeholder="Ex: Saint Pierre, Concile de Trente..."
+                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && wikiLinkText.trim()) {
+                        e.preventDefault();
+                        handleInsertWikiLink(wikiLinkText);
+                      }
+                    }}
+                  />
+                  {isSearching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="animate-spin w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Résultats de recherche */}
+              {searchResults.length > 0 && (
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">
+                    <p className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                      Articles existants ({searchResults.length})
+                    </p>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {searchResults.map((article) => (
+                      <button
+                        key={article.id}
+                        type="button"
+                        onClick={() => handleSelectArticle(article)}
+                        className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors flex items-center justify-between group"
+                      >
+                        <span className="font-medium text-slate-800 group-hover:text-blue-700">{article.title}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 group-hover:text-blue-500">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Créer un nouvel article */}
+              {wikiLinkText.trim() && searchResults.length === 0 && !isSearching && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <div className="p-1.5 bg-amber-100 rounded-lg">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-amber-800">Nouvel article</p>
+                      <p className="text-xs text-amber-700 mt-0.5">
+                        Créer un lien vers "{wikiLinkText}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Aperçu */}
+              {wikiLinkText.trim() && (
+                <div className="p-3 bg-slate-50 rounded-xl">
+                  <p className="text-xs text-slate-500 mb-1">Aperçu du lien :</p>
+                  <p className="text-blue-600 underline decoration-blue-300 font-medium">{wikiLinkText}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    → /wiki/{generateSlug(wikiLinkText)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-slate-200 bg-slate-50 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWikiLinkModal(false);
+                  setWikiLinkText('');
+                  setSearchResults([]);
+                }}
+                className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-white font-medium transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInsertWikiLink(wikiLinkText)}
+                disabled={!wikiLinkText.trim()}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+                Insérer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

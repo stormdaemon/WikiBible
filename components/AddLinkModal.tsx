@@ -30,30 +30,44 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
   const [selectedBook, setSelectedBook] = useState<{ id: string; name: string } | null>(null);
   const [selectedTranslation, setSelectedTranslation] = useState<string>('crampon');
   const [targetSourceType, setTargetSourceType] = useState<VerseSourceType>('bible');
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // État unifié pour afficher les erreurs/succès
   const state = selectedCategory === 'bible_link' ? linkState :
                 selectedCategory === 'commentary' ? annotationState :
                 selectedCategory === 'external_reference' ? externalState : null;
 
-  // Effet pour détecter le succès et rafraîchir
+  // Effet pour détecter le succès et lancer le compte à rebours
   useEffect(() => {
-    if (state?.success) {
-      // Rafraîchir les contributions après un court délai
-      setTimeout(() => {
-        onRefresh?.();
-        // Fermer la modale et réinitialiser
-        setStep(1);
-        setSelectedCategory(null);
-        setSelectedVerse(null);
-        setSelectedBook(null);
-        setSelectedTranslation('crampon');
-        setAnnotationState(null);
-        setExternalState(null);
-        onClose();
-      }, 1000);
+    if (state?.success && !showSuccess) {
+      setShowSuccess(true);
+      setCountdown(3);
+      onRefresh?.();
     }
-  }, [state, onRefresh, onClose]);
+  }, [state?.success, showSuccess, onRefresh]);
+
+  // Effet pour gérer le compte à rebours
+  useEffect(() => {
+    if (countdown === null) return;
+
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Fermer et réinitialiser
+      setShowSuccess(false);
+      setCountdown(null);
+      setStep(1);
+      setSelectedCategory(null);
+      setSelectedVerse(null);
+      setSelectedBook(null);
+      setSelectedTranslation('crampon');
+      setAnnotationState(null);
+      setExternalState(null);
+      onClose();
+    }
+  }, [countdown, onClose]);
 
   // Reset le wizard à la fermeture
   useEffect(() => {
@@ -67,6 +81,8 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setAnnotationState(null);
       setExternalState(null);
       setPending(false);
+      setShowSuccess(false);
+      setCountdown(null);
     }
   }, [isOpen]);
 
@@ -133,7 +149,8 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
     }
   };
 
-  if (!isOpen) return null;
+  // Permettre l'affichage de la modale de succès même si isOpen est false
+  if (!isOpen && !showSuccess) return null;
 
   const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
@@ -166,6 +183,47 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setTargetSourceType(srcType);
     }
   }, []);
+
+  // Modal de succès plein écran avec compte à rebours
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+        {/* Success Card */}
+        <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full animate-in fade-in zoom-in duration-300">
+          <div className="text-center">
+            {/* Checkmark animé */}
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-green-600">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+
+            <h3 className="text-2xl font-bold text-green-600 mb-2">Contribution ajoutée !</h3>
+            <p className="text-slate-600 mb-6">Votre renvoi a été créé avec succès</p>
+
+            {/* Compte à rebours */}
+            <div className="flex items-center justify-center gap-2 text-slate-500">
+              <span>Fermeture dans</span>
+              <span className="inline-flex items-center justify-center w-10 h-10 bg-slate-100 rounded-full text-xl font-bold text-primary">
+                {countdown}
+              </span>
+            </div>
+
+            {/* Barre de progression */}
+            <div className="mt-4 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-1000 ease-linear"
+                style={{ width: `${((3 - (countdown || 0)) / 3) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -224,21 +282,7 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
             </div>
           )}
 
-          {/* Success Overlay */}
-          {state?.success && (
-            <div className="absolute inset-0 bg-white/95 rounded-lg flex items-center justify-center z-10 animate-in fade-in zoom-in duration-200">
-              <div className="text-center p-6">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-green-600">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Succès !</h3>
-                <p className="text-slate-600">Contribution ajoutée avec succès</p>
-                <p className="text-sm text-slate-500 mt-2">La modale va se fermer...</p>
-              </div>
-            </div>
-          )}
+          {/* Success Overlay - ne plus utiliser ici, on utilise le portail fixe */}
 
           {/* Step 1: Category Selection */}
           {step === 1 && (
@@ -572,15 +616,15 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                 </button>
                 <button
                   type="submit"
-                  disabled={pending || (selectedCategory === 'bible_link' && !selectedVerse)}
+                  disabled={pending || linkPending || showSuccess || (selectedCategory === 'bible_link' && !selectedVerse)}
                   className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  {pending ? (
+                  {(pending || linkPending) ? (
                     <>
                       <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 12a9 9 0 11-6.219-8.56" />
                       </svg>
-                      Ajout...
+                      Ajout en cours...
                     </>
                   ) : (
                     <>

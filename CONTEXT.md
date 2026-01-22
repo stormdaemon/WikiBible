@@ -458,12 +458,13 @@ Fichiers avec `'use client'` détectés (31 fichiers) :
 
 ```typescript
 const CONTRIBUTION_POINTS = {
-  verse_link: 10,
-  annotation: 15,
-  external_source: 20,
-  wiki_article: 50,
-  verse_translation: 25,
-  translation_approved: 50,
+  verse_link: 1,         // Renvoi biblique
+  annotation: 1,         // Commentaire
+  external_source: 5,    // Référence externe
+  wiki_article: 50,      // Article wiki
+  verse_translation: 2,  // Traduction verset
+  translation_approved: 50, // Traduction approuvée
+  like_received: 1,      // Like reçu par l'auteur
 } as const;
 ```
 

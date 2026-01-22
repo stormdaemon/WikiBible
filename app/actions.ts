@@ -1622,12 +1622,13 @@ export async function deleteVerseLinkAction(
  * Points attribués pour chaque type de contribution
  */
 const CONTRIBUTION_POINTS = {
-  verse_link: 10,
-  annotation: 15,
-  external_source: 20,
+  verse_link: 1,
+  annotation: 1,
+  external_source: 5,
   wiki_article: 50,
-  verse_translation: 25,
+  verse_translation: 2,
   translation_approved: 50,
+  like_received: 1,
 } as const;
 
 type ContributionType = keyof typeof CONTRIBUTION_POINTS;
@@ -3111,6 +3112,7 @@ export async function createUniversalLinkWithSourceAction(
       source_verse_type: source_type,
       target_verse_id,
       target_verse_type: targetVerse?.verse_type || null,
+      target_translation,
       link_type,
       link_subtype,
       is_prophecy,
@@ -3425,4 +3427,35 @@ export async function getVersePreviewAction(
       error: errorMessage,
     };
   }
+}
+
+/**
+ * Recherche d'articles wiki par titre
+ */
+export async function searchWikiArticlesAction(query: string): Promise<{
+  success: boolean;
+  articles?: { id: string; title: string; slug: string }[];
+  error?: string;
+}> {
+  if (!query || query.trim().length < 2) {
+    return { success: true, articles: [] };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .rpc('search_wiki_articles', {
+      search_query: query.trim(),
+      max_results: 10
+    });
+
+  if (error) {
+    console.error('[searchWikiArticlesAction] Error:', error);
+    return { success: false, error: 'Erreur lors de la recherche' };
+  }
+
+  return {
+    success: true,
+    articles: data || [],
+  };
 }

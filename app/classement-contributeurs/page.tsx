@@ -69,21 +69,35 @@ export default async function LeaderboardPage() {
               <span className="text-2xl">🔗</span>
               <div>
                 <span className="font-semibold">Renvoi biblique</span>
-                <span className="ml-2 text-accent font-bold">+10 pts</span>
+                <span className="ml-2 text-accent font-bold">+1 pt</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-2xl">💭</span>
               <div>
                 <span className="font-semibold">Commentaire</span>
-                <span className="ml-2 text-accent font-bold">+15 pts</span>
+                <span className="ml-2 text-accent font-bold">+1 pt</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-2xl">📚</span>
               <div>
                 <span className="font-semibold">Référence externe</span>
-                <span className="ml-2 text-accent font-bold">+20 pts</span>
+                <span className="ml-2 text-accent font-bold">+5 pts</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">❤️</span>
+              <div>
+                <span className="font-semibold">Like reçu</span>
+                <span className="ml-2 text-accent font-bold">+1 pt</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">✍️</span>
+              <div>
+                <span className="font-semibold">Traduction verset</span>
+                <span className="ml-2 text-accent font-bold">+2 pts</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -91,13 +105,6 @@ export default async function LeaderboardPage() {
               <div>
                 <span className="font-semibold">Article wiki</span>
                 <span className="ml-2 text-accent font-bold">+50 pts</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">✍️</span>
-              <div>
-                <span className="font-semibold">Traduction verset</span>
-                <span className="ml-2 text-accent font-bold">+25 pts</span>
               </div>
             </div>
             <div className="flex items-center gap-3">

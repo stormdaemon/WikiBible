@@ -13,7 +13,7 @@ import {
 interface Translation {
   id: string;
   name: string;
-  type: 'official' | 'community';
+  type: string;
 }
 
 interface VersePickerProps {
@@ -22,12 +22,7 @@ interface VersePickerProps {
 }
 
 /**
- * VersePicker - Modal pour sélectionner un verset biblique
- *
- * Features:
- * - Sélection de la source (Bible normale / Contributive / Apocryphes)
- * - Récupération des livres depuis la DB
- * - Preview du verset avant insertion
+ * VersePicker - Modal moderne pour sélectionner un verset biblique
  */
 export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
   const [sourceType, setSourceType] = useState<BibleSourceType>('bible');
@@ -71,19 +66,16 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
   const filteredBooks = books.filter((book) => {
     const matchesSearch = book.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Utiliser sourceType pour distinguer Bible normale vs Apocryphes
     if (sourceType === 'apocryphal') {
       return matchesSearch && book.sourceType === 'apocryphal';
     }
 
-    // Pour bible et contributive, on garde les livres avec sourceType === 'bible' ou undefined (ancien format)
     return matchesSearch && (book.sourceType === 'bible' || book.sourceType === undefined || book.testament);
   });
 
   // Mettre à jour les chapitres quand le livre change
   useEffect(() => {
     if (selectedBook) {
-      // Nombre de chapitres par livre (approximation basée sur la Bible catholique)
       const book = books.find((b) => b.slug === selectedBook);
       if (book) {
         const chapterCount = getChapterCount(book.name);
@@ -125,18 +117,16 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
 
     const debounceTimer = setTimeout(loadVersePreview, 300);
     return () => clearTimeout(debounceTimer);
-  }, [sourceType, selectedBook, selectedChapter, selectedVerse]);
+  }, [sourceType, selectedBook, selectedChapter, selectedVerse, translationId]);
 
   // Générer la référence
   const generateReference = () => {
-    if (!selectedBook || !selectedChapter) return '';
+    if (!selectedBook || !selectedChapter || !selectedVerse) return '';
 
     const book = books.find((b) => b.slug === selectedBook);
     if (!book) return '';
 
-    return selectedVerse
-      ? `${book.name} ${selectedChapter}:${selectedVerse}`
-      : `${book.name} ${selectedChapter}`;
+    return `${book.name} ${selectedChapter}:${selectedVerse}`;
   };
 
   const handleInsert = () => {
@@ -147,35 +137,83 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
     }
   };
 
+  // Calculer la progression
+  const getProgress = () => {
+    let steps = 0;
+    if (selectedBook) steps++;
+    if (selectedChapter) steps++;
+    if (selectedVerse) steps++;
+    return steps;
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop avec blur */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            Insérer un verset biblique
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-slate-100 rounded transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+        <div className="p-5 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-amber-100 rounded-xl">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-700">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  <path d="M12 6v7" />
+                  <path d="M9 9h6" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-primary">Insérer un verset biblique</h3>
+                <p className="text-sm text-slate-600">Sélectionnez un livre, chapitre et verset</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/80 rounded-xl transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="mt-4 flex items-center gap-2">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center gap-2 flex-1">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                    getProgress() >= step
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-white border-2 border-slate-200 text-slate-400'
+                  }`}
+                >
+                  {step}
+                </div>
+                <span className={`text-xs hidden sm:block ${getProgress() >= step ? 'text-amber-700 font-medium' : 'text-slate-400'}`}>
+                  {step === 1 ? 'Livre' : step === 2 ? 'Chapitre' : 'Verset'}
+                </span>
+                {step < 3 && (
+                  <div className={`flex-1 h-0.5 ${getProgress() > step ? 'bg-amber-500' : 'bg-slate-200'}`} />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            {/* Sélecteur de source - 2 onglets seulement */}
+          <div className="p-5 space-y-5">
+            {/* Sélecteur de source */}
             <div>
-              <label className="form__label">Source</label>
-              <div className="flex gap-2">
-                {/* Onglet Bible regroupe officielle + contributive */}
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Source</label>
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -184,22 +222,26 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
                     setSelectedChapter('');
                     setSelectedVerse('');
                   }}
-                  className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all ${
                     sourceType === 'bible'
-                      ? 'border-accent bg-amber-50 text-accent'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      ? 'border-amber-400 bg-amber-50 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <span className="font-medium">Bible</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${sourceType === 'bible' ? 'bg-amber-200' : 'bg-slate-100'}`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={sourceType === 'bible' ? 'text-amber-700' : 'text-slate-500'}>
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <span className={`font-semibold ${sourceType === 'bible' ? 'text-amber-800' : 'text-slate-700'}`}>Bible</span>
+                      <p className="text-xs text-slate-500">73 livres canoniques</p>
+                    </div>
                   </div>
-                  <p className="text-xs mt-1">Officielle & Communautaire</p>
                 </button>
 
-                {/* Onglet Apocryphes */}
                 <button
                   type="button"
                   onClick={() => {
@@ -208,181 +250,250 @@ export default function VersePicker({ onInsert, onClose }: VersePickerProps) {
                     setSelectedChapter('');
                     setSelectedVerse('');
                   }}
-                  className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all ${
                     sourceType === 'apocryphal'
-                      ? 'border-accent bg-amber-50 text-accent'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      ? 'border-purple-400 bg-purple-50 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <span className="font-medium">Apocryphes</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${sourceType === 'apocryphal' ? 'bg-purple-200' : 'bg-slate-100'}`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={sourceType === 'apocryphal' ? 'text-purple-700' : 'text-slate-500'}>
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <span className={`font-semibold ${sourceType === 'apocryphal' ? 'text-purple-800' : 'text-slate-700'}`}>Apocryphes</span>
+                      <p className="text-xs text-slate-500">Deutérocanoniques</p>
+                    </div>
                   </div>
-                  <p className="text-xs mt-1">Textes deutérocanoniques</p>
                 </button>
               </div>
             </div>
 
-            {/* Sélecteur de traduction (uniquement pour Bible) */}
+            {/* Sélecteur de traduction */}
             {sourceType === 'bible' && (
               <div>
-                <label className="form__label">Traduction</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Traduction</label>
                 {translations.length === 0 ? (
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center text-slate-500">
-                    Chargement des traductions...
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                    <div className="flex items-center justify-center gap-2 text-slate-500">
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                      </svg>
+                      <span className="text-sm">Chargement des traductions...</span>
+                    </div>
                   </div>
                 ) : (
-                  <>
+                  <div className="relative">
                     <select
                       value={translationId}
                       onChange={(e) => setTranslationId(e.target.value)}
-                      className="form__input"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer"
                     >
                       {translations.map((trans) => (
                         <option key={trans.id} value={trans.id}>
-                          {trans.name}
+                          {trans.name} {trans.type === 'community' ? '(Communautaire)' : ''}
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {translations.find((t) => t.id === translationId)?.type === 'official'
-                        ? 'Traduction officielle'
-                        : 'Traduction communautaire'}
-                    </p>
-                  </>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
 
             {/* Recherche de livre */}
             <div>
-              <label className="form__label">Rechercher un livre</label>
-              <input
-                type="text"
-                placeholder="Ex: Jean, Psaumes, Genèse..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="form__input"
-              />
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Rechercher un livre</label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Ex: Jean, Psaumes, Genèse..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                />
+              </div>
             </div>
 
             {/* Sélection du livre */}
             <div>
-              <label className="form__label">Livre</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Livre <span className="text-red-500">*</span>
+              </label>
               {isLoading && books.length === 0 ? (
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-center text-slate-500">
-                  Chargement des livres...
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                  <div className="flex items-center justify-center gap-2 text-slate-500">
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12a9 9 0 11-6.219-8.56" />
+                    </svg>
+                    <span className="text-sm">Chargement des livres...</span>
+                  </div>
                 </div>
               ) : (
-                <select
-                  value={selectedBook}
-                  onChange={(e) => {
-                    setSelectedBook(e.target.value);
-                    setSelectedChapter('');
-                    setSelectedVerse('');
-                  }}
-                  className="form__input"
-                >
-                  <option value="">-- Sélectionner un livre --</option>
-                  {filteredBooks.map((book) => (
-                    <option key={book.slug} value={book.slug}>
-                      {book.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedBook}
+                    onChange={(e) => {
+                      setSelectedBook(e.target.value);
+                      setSelectedChapter('');
+                      setSelectedVerse('');
+                    }}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">-- Sélectionner un livre --</option>
+                    {filteredBooks.map((book) => (
+                      <option key={book.slug} value={book.slug}>
+                        {book.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Sélection du chapitre */}
+            {/* Chapitre et Verset côte à côte */}
             {selectedBook && (
-              <div>
-                <label className="form__label">Chapitre</label>
-                <select
-                  value={selectedChapter}
-                  onChange={(e) => {
-                    setSelectedChapter(e.target.value);
-                    setSelectedVerse('');
-                  }}
-                  className="form__input"
-                >
-                  <option value="">-- Sélectionner un chapitre --</option>
-                  {chapters.map((chapter) => (
-                    <option key={chapter} value={chapter.toString()}>
-                      Chapitre {chapter}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Sélection du verset */}
-            {selectedChapter && (
-              <div>
-                <label className="form__label">Verset <span className="text-red-500">*</span></label>
-                <select
-                  value={selectedVerse}
-                  onChange={(e) => setSelectedVerse(e.target.value)}
-                  className="form__input"
-                >
-                  <option value="">-- Sélectionner un verset --</option>
-                  {Array.from({ length: 176 }, (_, i) => i + 1).map((verse) => (
-                    <option key={verse} value={verse.toString()}>
-                      Verset {verse}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Preview du verset - uniquement si verset sélectionné */}
-            {selectedBook && selectedChapter && selectedVerse && (
-              <>
-                <div className="bg-slate-100 px-3 py-2 border-b border-slate-200">
-                  <p className="text-sm font-medium text-slate-700">Aperçu</p>
-                </div>
-                <div className="p-3">
-                  {isLoading ? (
-                    <div className="flex items-center gap-2 text-slate-500">
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 6v6l4 2" />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Sélection du chapitre */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Chapitre <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedChapter}
+                      onChange={(e) => {
+                        setSelectedChapter(e.target.value);
+                        setSelectedVerse('');
+                      }}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">-- Chapitre --</option>
+                      {chapters.map((chapter) => (
+                        <option key={chapter} value={chapter.toString()}>
+                          {chapter}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
                       </svg>
-                      <span className="text-sm">Chargement...</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sélection du verset */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Verset <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedVerse}
+                      onChange={(e) => setSelectedVerse(e.target.value)}
+                      disabled={!selectedChapter}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    >
+                      <option value="">-- Verset --</option>
+                      {Array.from({ length: 176 }, (_, i) => i + 1).map((verse) => (
+                        <option key={verse} value={verse.toString()}>
+                          {verse}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Preview du verset */}
+            {selectedBook && selectedChapter && selectedVerse && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl overflow-hidden">
+                <div className="bg-amber-100/50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <span className="text-sm font-semibold text-amber-800">Aperçu du verset</span>
+                </div>
+                <div className="p-4">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-4 text-amber-600">
+                      <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                      </svg>
+                      <span className="text-sm font-medium">Chargement du verset...</span>
                     </div>
                   ) : previewError ? (
-                    <div className="text-red-600 text-sm">{previewError}</div>
+                    <div className="flex items-center gap-2 text-red-600 py-2">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      <span className="text-sm">{previewError}</span>
+                    </div>
                   ) : versePreview ? (
                     <div>
-                      <p className="text-xs font-semibold text-accent mb-2">
-                        {versePreview.reference}
+                      <p className="text-sm font-bold text-amber-800 mb-2 flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-amber-200 rounded-md text-xs">
+                          {versePreview.reference}
+                        </span>
                       </p>
-                      <p className="text-sm text-slate-700 italic">
+                      <p className="text-slate-700 italic leading-relaxed">
                         "{versePreview.text}"
                       </p>
                     </div>
                   ) : null}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 flex gap-3">
+        <div className="p-5 border-t border-slate-200 bg-slate-50 flex gap-3">
           <button
             onClick={onClose}
-            className="btn btn--secondary flex-1"
+            className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-white font-medium transition-colors"
           >
             Annuler
           </button>
           <button
             onClick={handleInsert}
             disabled={!generateReference()}
-            className="btn btn--primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
           >
-            Insérer
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              <path d="M12 6v7" />
+              <path d="M9 9h6" />
+            </svg>
+            Insérer le verset
           </button>
         </div>
       </div>
@@ -415,5 +526,5 @@ function getChapterCount(bookName: string): number {
     '1 Jean': 5, '2 Jean': 1, '3 Jean': 1, 'Jude': 1, 'Apocalypse': 22,
   };
 
-  return chapterCounts[bookName] || 50; // Default fallback
+  return chapterCounts[bookName] || 50;
 }

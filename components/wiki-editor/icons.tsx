@@ -1,129 +1,146 @@
 /**
  * Icônes SVG pour l'éditeur Wiki
- * Style catholique médiéval inspiré des enluminures
+ * Design moderne et lisible
  */
 
 export const Icons = {
+  // Titre H1
   H1: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="10" y="15" width="80" height="70" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <path d="M15 20 L85 20 M15 80 L85 80" stroke="#c9a961" strokeWidth="1.5"/>
-      <path d="M25 35 L25 65 M25 50 L40 50 M40 35 L40 65" stroke="#8b6f47" strokeWidth="4" strokeLinecap="round"/>
-      <circle cx="65" cy="42" r="12" fill="#c9a961" fillOpacity="0.3"/>
-      <path d="M60 40 L65 35 L65 60" stroke="#8b6f47" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M58 60 L72 60" stroke="#8b6f47" strokeWidth="3" strokeLinecap="round"/>
-      <circle cx="65" cy="42" r="16" stroke="#c9a961" strokeWidth="1" fill="none" fillOpacity="0.5"/>
-      <path d="M65 26 L67 30 M65 26 L63 30" stroke="#c9a961" strokeWidth="1.5"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h8" />
+      <path d="M4 18V6" />
+      <path d="M12 18V6" />
+      <path d="M17 12l3-2v8" />
     </svg>
   ),
 
+  // Titre H2
   H2: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="10" y="15" width="80" height="70" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <path d="M15 20 L85 20 M15 80 L85 80" stroke="#c9a961" strokeWidth="1.5"/>
-      <path d="M23 35 L23 65 M23 50 L38 50 M38 35 L38 65" stroke="#8b6f47" strokeWidth="3.5" strokeLinecap="round"/>
-      <circle cx="66" cy="45" r="13" fill="#c9a961" fillOpacity="0.2"/>
-      <path d="M58 40 Q68 35 68 42 Q68 48 58 53 L73 53" stroke="#8b6f47" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
-      <circle cx="52" cy="38" r="2" fill="#c9a961"/>
-      <circle cx="75" cy="40" r="1.5" fill="#c9a961"/>
-      <path d="M52 38 Q55 35 58 40" stroke="#c9a961" strokeWidth="1" fill="none"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h8" />
+      <path d="M4 18V6" />
+      <path d="M12 18V6" />
+      <path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1" />
     </svg>
   ),
 
+  // Titre H3
   H3: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="10" y="15" width="80" height="70" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <path d="M15 20 L85 20 M15 80 L85 80" stroke="#c9a961" strokeWidth="1.5"/>
-      <path d="M23 35 L23 65 M23 50 L38 50 M38 35 L38 65" stroke="#8b6f47" strokeWidth="3" strokeLinecap="round"/>
-      <circle cx="65" cy="45" r="14" fill="#c9a961" fillOpacity="0.15"/>
-      <path d="M58 38 Q68 38 68 44 Q68 47 63 47 M63 47 Q72 47 72 54 Q72 58 60 58" stroke="#8b6f47" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M75 38 L78 38 M75 58 L78 58" stroke="#c9a961" strokeWidth="1.5"/>
-      <circle cx="80" cy="48" r="1.5" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h8" />
+      <path d="M4 18V6" />
+      <path d="M12 18V6" />
+      <path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2" />
+      <path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2" />
     </svg>
   ),
 
+  // Gras (Bold)
   Bold: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="15" y="20" width="70" height="60" rx="4" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <rect x="18" y="23" width="64" height="54" rx="2" fill="none" stroke="#c9a961" strokeWidth="1"/>
-      <path d="M35 35 L35 65 M35 35 L48 35 Q55 35 55 42 Q55 47 48 50 L35 50 M35 50 L50 50 Q58 50 58 57 Q58 65 50 65 L35 65" fill="#8b6f47"/>
-      <circle cx="25" cy="28" r="2" fill="#c9a961"/>
-      <circle cx="75" cy="28" r="2" fill="#c9a961"/>
-      <circle cx="25" cy="72" r="2" fill="#c9a961"/>
-      <circle cx="75" cy="72" r="2" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+      <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
     </svg>
   ),
 
+  // Italique
   Italic: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="15" y="20" width="70" height="60" rx="4" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <path d="M20 25 L80 25 M20 75 L80 75" stroke="#c9a961" strokeWidth="1"/>
-      <path d="M45 35 L60 35" stroke="#8b6f47" strokeWidth="3" strokeLinecap="round"/>
-      <path d="M55 35 L45 65" stroke="#8b6f47" strokeWidth="4" strokeLinecap="round"/>
-      <path d="M40 65 L55 65" stroke="#8b6f47" strokeWidth="3" strokeLinecap="round"/>
-      <path d="M62 32 Q68 28 70 35 L68 40" stroke="#c9a961" strokeWidth="1.5" fill="none"/>
-      <path d="M68 32 L70 35 L67 36" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="4" x2="10" y2="4" />
+      <line x1="14" y1="20" x2="5" y2="20" />
+      <line x1="15" y1="4" x2="9" y2="20" />
     </svg>
   ),
 
+  // Liste à puces
   BulletList: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="12" y="18" width="76" height="64" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <g transform="translate(22, 32)">
-        <path d="M0 -3 L0 3 M-3 0 L3 0" stroke="#c9a961" strokeWidth="2"/>
-      </g>
-      <g transform="translate(22, 50)">
-        <path d="M0 -3 L0 3 M-3 0 L3 0" stroke="#c9a961" strokeWidth="2"/>
-      </g>
-      <g transform="translate(22, 68)">
-        <path d="M0 -3 L0 3 M-3 0 L3 0" stroke="#c9a961" strokeWidth="2"/>
-      </g>
-      <path d="M32 32 L75 32 M32 50 L75 50 M32 68 L75 68" stroke="#8b6f47" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="78" cy="32" r="1.5" fill="#c9a961"/>
-      <circle cx="78" cy="50" r="1.5" fill="#c9a961"/>
-      <circle cx="78" cy="68" r="1.5" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="9" y1="6" x2="20" y2="6" />
+      <line x1="9" y1="12" x2="20" y2="12" />
+      <line x1="9" y1="18" x2="20" y2="18" />
+      <circle cx="4" cy="6" r="1" fill="currentColor" />
+      <circle cx="4" cy="12" r="1" fill="currentColor" />
+      <circle cx="4" cy="18" r="1" fill="currentColor" />
     </svg>
   ),
 
+  // Liste numérotée
   OrderedList: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="12" y="18" width="76" height="64" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <text x="22" y="35" fontFamily="serif" fontSize="12" fill="#8b6f47" fontWeight="bold">I</text>
-      <text x="20" y="53" fontFamily="serif" fontSize="12" fill="#8b6f47" fontWeight="bold">II</text>
-      <text x="18" y="71" fontFamily="serif" fontSize="12" fill="#8b6f47" fontWeight="bold">III</text>
-      <path d="M32 32 L75 32 M32 50 L75 50 M32 68 L75 68" stroke="#8b6f47" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="30" cy="32" r="1.5" fill="#c9a961"/>
-      <circle cx="30" cy="50" r="1.5" fill="#c9a961"/>
-      <circle cx="30" cy="68" r="1.5" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="10" y1="6" x2="21" y2="6" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <line x1="10" y1="18" x2="21" y2="18" />
+      <path d="M4 6h1v4" />
+      <path d="M4 10h2" />
+      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
     </svg>
   ),
 
+  // Citation (Blockquote)
+  Quote: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z" />
+      <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v4z" />
+    </svg>
+  ),
+
+  // Verset biblique (Bible/Book icon)
   Verse: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <ellipse cx="50" cy="75" rx="38" ry="8" fill="#8b6f47" fillOpacity="0.2"/>
-      <path d="M20 25 Q18 25 18 27 L18 73 Q18 75 20 75 L48 75 L48 25 Z" fill="#8b6f47"/>
-      <rect x="20" y="28" width="26" height="44" fill="#c9a961" fillOpacity="0.3"/>
-      <path d="M80 25 Q82 25 82 27 L82 73 Q82 75 80 75 L52 75 L52 25 Z" fill="#8b6f47"/>
-      <rect x="54" y="28" width="26" height="44" fill="#c9a961" fillOpacity="0.3"/>
-      <path d="M33 42 L33 58 M26 50 L40 50" stroke="#f4e4c1" strokeWidth="2.5"/>
-      <path d="M49 26 L49 74 M50 26 L50 74 M51 26 L51 74" stroke="#f4e4c1" strokeWidth="0.5"/>
-      <path d="M58 35 L72 35 M58 40 L72 40 M58 45 L68 45" stroke="#8b6f47" strokeWidth="1"/>
-      <circle cx="68" cy="55" r="8" fill="#c9a961" fillOpacity="0.3"/>
-      <path d="M68 50 L68 60 M63 55 L73 55" stroke="#c9a961" strokeWidth="1.5"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M12 6v7" />
+      <path d="M9 9h6" />
     </svg>
   ),
 
-  // Lien Wiki - Croix stylisée avec lien
+  // Lien Wiki
   WikiLink: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect x="10" y="15" width="80" height="70" rx="3" fill="#f4e4c1" stroke="#8b6f47" strokeWidth="2"/>
-      <path d="M15 20 L85 20 M15 80 L85 80" stroke="#c9a961" strokeWidth="1.5"/>
-      {/* Croix stylisée */}
-      <path d="M35 40 L35 60 M28 50 L42 50" stroke="#c9a961" strokeWidth="3" strokeLinecap="round"/>
-      {/* Lien chaînet */}
-      <ellipse cx="65" cy="45" rx="12" ry="8" fill="none" stroke="#8b6f47" strokeWidth="2.5"/>
-      <ellipse cx="75" cy="55" rx="12" ry="8" fill="none" stroke="#8b6f47" strokeWidth="2.5"/>
-      <circle cx="70" cy="50" r="2" fill="#c9a961"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  ),
+
+  // Undo
+  Undo: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+    </svg>
+  ),
+
+  // Redo
+  Redo: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 7v6h-6" />
+      <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+    </svg>
+  ),
+
+  // Code/Preformatted
+  Code: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  ),
+
+  // Horizontal Rule
+  HorizontalRule: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12" />
+    </svg>
+  ),
+
+  // Clear formatting
+  ClearFormatting: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 7V4h16v3" />
+      <path d="M9 20h6" />
+      <path d="M12 4v16" />
+      <path d="m17 17 4 4" />
+      <path d="m17 21 4-4" />
     </svg>
   ),
 };

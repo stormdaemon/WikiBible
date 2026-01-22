@@ -3131,6 +3131,22 @@ export async function createUniversalLinkWithSourceAction(
     }
   }
 
+  // Vérifier si un lien identique existe déjà (même source, même cible, même auteur)
+  // Cela évite les doublons si un utilisateur crée le même renvoi plusieurs fois
+  if (target_verse_id) {
+    const { data: existingLink } = await supabase
+      .from('verse_links')
+      .select('id')
+      .eq('source_verse_id', source_verse_id)
+      .eq('target_verse_id', target_verse_id)
+      .eq('author_id', user.id)
+      .maybeSingle();
+
+    if (existingLink) {
+      return { error: 'Ce renvoi existe déjà. Vous avez déjà créé un lien vers ce verset.' };
+    }
+  }
+
   // Créer le lien original avec les nouveaux champs source_verse_type et target_verse_type
   // Note: target_translation n'est plus stocké - les renvois sont indépendants de la traduction
   const { data: createdLink, error: insertError } = await supabase

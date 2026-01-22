@@ -8,6 +8,7 @@ interface VerseLink {
   id: string;
   link_type: string;
   link_subtype?: string | null;
+  is_prophecy?: boolean;
   description: string | null;
   likes_count?: number;
   created_at?: string;
@@ -432,6 +433,12 @@ function VerseLinkItem({
               initialCount={link.likes_count || 0}
               size="sm"
             />
+            {/* Soleil si prophétie accomplie */}
+            {link.is_prophecy && (
+              <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium bg-yellow-100 text-yellow-700 border border-yellow-300" title="Prophétie accomplie">
+                ☀️
+              </span>
+            )}
             <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 py-1 rounded-full font-medium ${linkTypeColors[link.link_subtype || link.link_type]}`}>
               {linkTypeLabels[link.link_subtype || link.link_type] || link.link_subtype || link.link_type}
             </span>

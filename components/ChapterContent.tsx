@@ -122,7 +122,7 @@ export function ChapterContent({
   if (contributions && selectedVerseId) {
     verseContributions[selectedVerseId] = {
       links: contributions.links?.length || 0,
-      linkDetails: contributions.link_details || [],
+      linkDetails: contributions.links || [], // Utiliser links pour les détails (contient is_prophecy, link_subtype, etc.)
       wiki_links: contributions.wiki_links || [],
       annotations: contributions.annotations?.length || 0,
       external_sources: contributions.external_sources?.length || 0,

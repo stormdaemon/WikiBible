@@ -26,9 +26,8 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
 
   const [step, setStep] = useState<Step>(1);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
-  const [selectedVerse, setSelectedVerse] = useState<{ bookId: string; bookName: string; chapter: number; verse: number; translation?: string; sourceType?: VerseSourceType } | null>(null);
+  const [selectedVerse, setSelectedVerse] = useState<{ bookId: string; bookName: string; chapter: number; verse: number; sourceType?: VerseSourceType } | null>(null);
   const [selectedBook, setSelectedBook] = useState<{ id: string; name: string } | null>(null);
-  const [selectedTranslation, setSelectedTranslation] = useState<string>('crampon');
   const [targetSourceType, setTargetSourceType] = useState<VerseSourceType>('bible');
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -62,7 +61,6 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setSelectedCategory(null);
       setSelectedVerse(null);
       setSelectedBook(null);
-      setSelectedTranslation('crampon');
       setAnnotationState(null);
       setExternalState(null);
       onClose();
@@ -76,7 +74,6 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setSelectedCategory(null);
       setSelectedVerse(null);
       setSelectedBook(null);
-      setSelectedTranslation('crampon');
       setTargetSourceType('bible');
       setAnnotationState(null);
       setExternalState(null);
@@ -162,7 +159,6 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
     setSelectedCategory(null);
     setSelectedVerse(null);
     setSelectedBook(null);
-    setSelectedTranslation('crampon');
     setTargetSourceType('bible');
   };
 
@@ -171,14 +167,10 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
     bookName: string,
     chapter: number,
     verse: number,
-    translation?: string,
     srcType?: VerseSourceType
   ) => {
-    setSelectedVerse({ bookId, bookName, chapter, verse, translation, sourceType: srcType });
+    setSelectedVerse({ bookId, bookName, chapter, verse, sourceType: srcType });
     setSelectedBook({ id: bookId, name: bookName });
-    if (translation) {
-      setSelectedTranslation(translation);
-    }
     if (srcType) {
       setTargetSourceType(srcType);
     }
@@ -381,7 +373,6 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                   <input type="hidden" name="link_type" value="parallel" />
                   <input type="hidden" name="source_type" value={sourceType} />
                   <input type="hidden" name="target_source_type" value={targetSourceType} />
-                  <input type="hidden" name="target_translation" value={selectedVerse?.translation || 'crampon'} />
                   <input type="hidden" name="target_verse"
                     value={selectedVerse ? `${selectedBook?.name || ''} ${selectedVerse.chapter}:${selectedVerse.verse}` : ''}
                   />
@@ -389,7 +380,6 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                   <UniversalVerseSelector
                     onVerseSelected={handleVerseSelected}
                     selectedBook={selectedBook}
-                    initialTranslation="crampon"
                     initialSourceType="bible"
                   />
 

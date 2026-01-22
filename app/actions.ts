@@ -1071,16 +1071,40 @@ export async function createAndLinkExternalSourceAction(
 
 /**
  * Récupère toutes les contributions pour un verset (liens, annotations, sources externes)
+ * Les contributions sont partagées entre toutes les traductions d'un même verset (même book + chapter + verse)
  */
 export async function getVerseContributionsAction(verseId: string) {
   const { createPublicClient } = await import('@/utils/supabase/server');
   const supabase = createPublicClient();
 
-  // Récupérer tous les liens (sans jointure pour commencer)
+  // 1. Récupérer les coordonnées du verset actuel (book_id, chapter, verse)
+  const { data: currentVerse } = await supabase
+    .from('bible_verses')
+    .select('book_id, chapter, verse')
+    .eq('id', verseId)
+    .single();
+
+  if (!currentVerse) {
+    console.error('[getVerseContributionsAction] Verse not found:', verseId);
+    return { links: [], wiki_links: [], annotations: [], external_sources: [] };
+  }
+
+  // 2. Trouver tous les verse_ids qui correspondent aux mêmes coordonnées (toutes traductions)
+  const { data: allVerseIds } = await supabase
+    .from('bible_verses')
+    .select('id')
+    .eq('book_id', currentVerse.book_id)
+    .eq('chapter', currentVerse.chapter)
+    .eq('verse', currentVerse.verse);
+
+  const verseIds = allVerseIds?.map(v => v.id) || [verseId];
+  console.log('[getVerseContributionsAction] Found', verseIds.length, 'verse IDs for coordinates:', currentVerse);
+
+  // 3. Récupérer tous les liens dont la source correspond à n'importe laquelle de ces coordonnées
   const { data: links, error: linksError } = await supabase
     .from('verse_links')
     .select('*')
-    .eq('source_verse_id', verseId);
+    .in('source_verse_id', verseIds);
 
   console.log('[getVerseContributionsAction] raw links:', JSON.stringify(links, null, 2));
   console.log('[getVerseContributionsAction] linksError:', linksError);
@@ -1246,10 +1270,11 @@ export async function getVerseContributionsAction(verseId: string) {
   );
 
   // Récupérer les annotations principales (pas les réponses) - sans jointure à cause du RLS
+  // Utiliser tous les verse_ids pour récupérer les annotations de toutes les traductions
   const { data: annotations } = await supabase
     .from('verse_annotations')
     .select('*')
-    .eq('verse_id', verseId)
+    .in('verse_id', verseIds)
     .is('parent_id', null)
     .order('created_at', { ascending: true });
 
@@ -1307,14 +1332,14 @@ export async function getVerseContributionsAction(verseId: string) {
     })
   );
 
-  // Récupérer les sources externes liées
+  // Récupérer les sources externes liées (pour toutes les traductions)
   const { data: external_sources } = await supabase
     .from('verse_external_links')
     .select(`
       *,
       external_source:external_sources(*)
     `)
-    .eq('verse_id', verseId);
+    .in('verse_id', verseIds);
 
   return {
     links: bibleLinks,
@@ -2990,7 +3015,9 @@ const CreateUniversalLinkWithSourceSchema = z.object({
   source_type: z.enum(['bible', 'contributive', 'apocryphal']),
   target_verse: z.string().min(1),
   target_source_type: z.enum(['bible', 'contributive', 'apocryphal', 'any']),
-  target_translation: z.string().min(1),
+  // La traduction n'est plus requise - les renvois sont indépendants de la traduction
+  // Utilise 'crampon' par défaut pour la recherche du verset cible
+  target_translation: z.string().nullish().transform(v => v || 'crampon'),
   link_type: z.enum(['citation', 'parallel', 'prophecy', 'typology', 'commentary', 'concordance']),
   link_subtype: z.enum(['parallel', 'figure', 'type', 'prophecy']).optional(),
   is_prophecy: z.boolean().optional(),
@@ -3105,6 +3132,7 @@ export async function createUniversalLinkWithSourceAction(
   }
 
   // Créer le lien original avec les nouveaux champs source_verse_type et target_verse_type
+  // Note: target_translation n'est plus stocké - les renvois sont indépendants de la traduction
   const { data: createdLink, error: insertError } = await supabase
     .from('verse_links')
     .insert({
@@ -3112,7 +3140,6 @@ export async function createUniversalLinkWithSourceAction(
       source_verse_type: source_type,
       target_verse_id,
       target_verse_type: targetVerse?.verse_type || null,
-      target_translation,
       link_type,
       link_subtype,
       is_prophecy,

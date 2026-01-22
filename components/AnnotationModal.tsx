@@ -367,6 +367,7 @@ function VerseLinkItem({
   onClose: () => void;
 }) {
   const [deleteState, deleteFormAction, deletePending] = useActionState(deleteVerseLinkAction, null);
+  const [showTranslationPicker, setShowTranslationPicker] = useState(false);
   const isOwner = currentUserId && link.author_id === currentUserId;
 
   // Effet pour détecter le succès de la suppression et rafraîchir
@@ -398,43 +399,8 @@ function VerseLinkItem({
   const bookSlug = link.bible_verses?.bible_books?.slug || link.bible_verses?.bible_books?.id || '';
   const hasVerseText = link.bible_verses?.text;
 
-  // Générer l'URL correcte selon le type de verset (bible ou apocryphal)
+  // Vérifier si c'est un verset apocryphe
   const isApocryphal = link.target_verse_type === 'apocryphal';
-  // Utiliser target_translation du lien, sinon translation_id du verset, sinon 'crampon'
-  const translationParam = link.target_translation || link.bible_verses?.translation_id || 'crampon';
-  const verseUrl = isApocryphal
-    ? `/apocrypha/${bookSlug}/${link.bible_verses?.chapter}`
-    : `/bible/${bookSlug}/${link.bible_verses?.chapter}?translation=${translationParam}`;
-
-  // URL avec ancre vers le verset spécifique
-  const verseUrlWithAnchor = link.bible_verses
-    ? `${verseUrl}#verse-${link.bible_verses.verse}`
-    : verseUrl;
-
-  // Formater le nom de la traduction pour l'affichage
-  const getTranslationName = (translationId?: string) => {
-    if (!translationId) return '';
-    if (translationId === 'auto') return 'Apocryphe';
-    if (translationId === 'gemini-3-flash') return 'Apocryphe';
-    if (translationId === 'original') return 'Texte original';
-
-    // Noms des traductions bibliques
-    const translationNames: Record<string, string> = {
-      'crampon': 'Bible Crampon',
-      'jerusalem': 'Bible de Jérusalem',
-      'osty': 'Bible Osty',
-      'tob': 'Bible Tob',
-      'septante': 'Septante',
-      'liturgique': 'Traduction Liturgique',
-      'vulgate': 'Vulgate',
-      'grec': 'Texte Grec',
-      'hebreu': 'Texte Hébreu',
-      'latin': 'Texte Latin',
-    };
-    return translationNames[translationId] || translationId;
-  };
-
-  const translationName = getTranslationName(link.bible_verses?.translation_id);
 
   return (
     <div className="relative">
@@ -449,9 +415,6 @@ function VerseLinkItem({
               ) : link.bible_verses ? (
                 <>
                   {link.bible_verses.bible_books.name} {link.bible_verses.chapter}:{link.bible_verses.verse}
-                  {translationName && (
-                    <span className="ml-2 text-xs font-normal text-slate-500">({translationName})</span>
-                  )}
                 </>
               ) : (
                 <span className="text-slate-500">Sans cible</span>
@@ -499,10 +462,7 @@ function VerseLinkItem({
                 <p className="text-slate-700 italic mb-2 text-xs sm:text-sm truncate">"{link.bible_verses.text}"</p>
                 {bookSlug && (
                   <button
-                    onClick={() => {
-                      onClose();
-                      window.location.href = verseUrlWithAnchor;
-                    }}
+                    onClick={() => setShowTranslationPicker(true)}
                     className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-xs sm:text-sm font-medium"
                   >
                     <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -518,10 +478,7 @@ function VerseLinkItem({
                 <p className="text-yellow-700 text-xs sm:text-sm">Texte non disponible</p>
                 {bookSlug && (
                   <button
-                    onClick={() => {
-                      onClose();
-                      window.location.href = verseUrlWithAnchor;
-                    }}
+                    onClick={() => setShowTranslationPicker(true)}
                     className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-xs sm:text-sm font-medium mt-2"
                   >
                     <svg width="12" height="12" className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -534,6 +491,27 @@ function VerseLinkItem({
               </div>
             )}
           </>
+        )}
+
+        {/* Modal de sélection de traduction */}
+        {showTranslationPicker && bookSlug && (
+          <TranslationPickerModal
+            bookSlug={bookSlug}
+            chapter={link.bible_verses?.chapter || 1}
+            verse={link.bible_verses?.verse || 1}
+            isApocryphal={isApocryphal}
+            onClose={() => setShowTranslationPicker(false)}
+            onSelect={(translationId, isCommunity) => {
+              setShowTranslationPicker(false);
+              onClose();
+              // Les traductions communautaires utilisent /bible-contributive/
+              const basePath = isCommunity ? '/bible-contributive' : '/bible';
+              const url = isApocryphal
+                ? `/apocrypha/${bookSlug}/${link.bible_verses?.chapter}#verse-${link.bible_verses?.verse}`
+                : `${basePath}/${bookSlug}/${link.bible_verses?.chapter}?translation=${translationId}#verse-${link.bible_verses?.verse}`;
+              window.location.href = url;
+            }}
+          />
         )}
 
         <div className="flex items-center gap-2 sm:gap-3 mt-2 text-[10px] sm:text-xs text-slate-500 flex-wrap">
@@ -1029,6 +1007,111 @@ function AnnotationItem({ annotation, verseId, depth = 0, onRefresh, currentUser
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Modal de sélection de traduction
+function TranslationPickerModal({
+  bookSlug,
+  chapter,
+  verse,
+  isApocryphal,
+  onClose,
+  onSelect,
+}: {
+  bookSlug: string;
+  chapter: number;
+  verse: number;
+  isApocryphal: boolean;
+  onClose: () => void;
+  onSelect: (translationId: string, isCommunity: boolean) => void;
+}) {
+  // Traductions disponibles
+  const translations = isApocryphal
+    ? [
+        { id: 'auto', name: 'Traduction automatique', icon: '🤖' },
+        { id: 'original', name: 'Texte original', icon: '📜' },
+      ]
+    : [
+        { id: 'crampon', name: 'Bible Crampon (1904)', icon: '📖', description: 'Traduction catholique classique' },
+        { id: 'jerusalem', name: 'Bible de Jérusalem', icon: '📖', description: 'Traduction de référence' },
+        { id: 'osty', name: 'Bible Osty', icon: '📚', description: 'Peut ne pas exister pour ce verset', community: true },
+        { id: 'tob', name: 'Bible TOB', icon: '📚', description: 'Peut ne pas exister pour ce verset', community: true },
+        { id: 'liturgique', name: 'Traduction Liturgique', icon: '⛪', description: 'Peut ne pas exister pour ce verset', community: true },
+      ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm animate-in fade-in zoom-in duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+          <div>
+            <h3 className="text-lg font-bold text-primary">Choisir une traduction</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {isApocryphal ? 'Texte apocryphe' : `Vers quel texte souhaitez-vous aller ?`}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Fermer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
+          {translations.map((translation) => (
+            <button
+              key={translation.id}
+              onClick={() => onSelect(translation.id, !!translation.community)}
+              className={`w-full p-3 text-left rounded-lg border-2 transition-all hover:shadow-md ${
+                translation.community
+                  ? 'border-purple-200 hover:border-purple-400 hover:bg-purple-50'
+                  : 'border-slate-200 hover:border-accent hover:bg-accent/5'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{translation.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-primary truncate">{translation.name}</span>
+                    {translation.community && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium flex-shrink-0">
+                        Communautaire
+                      </span>
+                    )}
+                  </div>
+                  {translation.description && (
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{translation.description}</p>
+                  )}
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 flex-shrink-0">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Footer hint */}
+        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 rounded-b-xl">
+          <p className="text-xs text-slate-500 text-center">
+            Les traductions communautaires sont complétées progressivement par les contributeurs
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

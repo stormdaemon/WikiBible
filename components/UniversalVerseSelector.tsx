@@ -1,27 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getBooksAction, getAvailableTranslationsAction, getApocryphalBooksAction } from '@/app/actions';
+import { getBooksAction, getApocryphalBooksAction } from '@/app/actions';
 
-type VerseSourceType = 'bible' | 'contributive' | 'apocryphal';
+export type VerseSourceType = 'bible' | 'contributive' | 'apocryphal';
 
 interface VerseSelectorProps {
-  onVerseSelected: (bookId: string, bookName: string, chapter: number, verse: number, translation?: string, sourceType?: VerseSourceType) => void;
+  onVerseSelected: (bookId: string, bookName: string, chapter: number, verse: number, sourceType?: VerseSourceType) => void;
   selectedBook?: { id: string; name: string } | null;
-  initialTranslation?: string;
   initialSourceType?: 'bible' | 'apocryphal'; // Only 2 options in UI
-}
-
-interface Translation {
-  id: string;
-  name: string;
-  type: string;
 }
 
 export function UniversalVerseSelector({
   onVerseSelected,
   selectedBook,
-  initialTranslation = 'crampon',
   initialSourceType = 'bible'
 }: VerseSelectorProps) {
   const [sourceType, setSelectedSourceType] = useState<VerseSourceType>(initialSourceType === 'apocryphal' ? 'apocryphal' : 'bible');
@@ -29,38 +21,7 @@ export function UniversalVerseSelector({
   const [selectedBookId, setSelectedBookId] = useState<string>(selectedBook?.id || '');
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
   const [selectedVerse, setSelectedVerse] = useState<number>(0);
-  const [selectedTranslation, setSelectedTranslation] = useState<string>(initialTranslation);
   const [verses, setVerses] = useState<any[]>([]);
-  const [translations, setTranslations] = useState<Translation[]>([]);
-  const [isLoadingTranslations, setIsLoadingTranslations] = useState(false);
-
-  // Charger les traductions disponibles
-  useEffect(() => {
-    const loadTranslations = async () => {
-      setIsLoadingTranslations(true);
-      const result = await getAvailableTranslationsAction();
-      if (result.success && result.translations) {
-        setTranslations(result.translations);
-      }
-      setIsLoadingTranslations(false);
-    };
-    loadTranslations();
-  }, []);
-
-  const bibleTranslations = translations.filter(t => t.type === 'official');
-  // Pour la bible contributive, on utilise les traductions communautaires (Osty, Tob, Septante, etc.)
-  const contributiveTranslations = translations.filter(t => t.type === 'community');
-
-  // Debug: voir ce qui est chargé
-  console.log('[UniversalVerseSelector] Translations loaded:', translations.length);
-  console.log('[UniversalVerseSelector] Bible translations:', bibleTranslations.length);
-  console.log('[UniversalVerseSelector] Contributive translations:', contributiveTranslations.length);
-  console.log('[UniversalVerseSelector] Community translations:', translations.filter(t => t.type === 'community'));
-
-  const apocryphalTranslations = [
-    { id: 'auto', name: 'Traduction automatique', type: 'apocryphal' },
-    { id: 'original', name: 'Texte original', type: 'apocryphal' },
-  ];
 
   // Charger les livres selon le type de source
   useEffect(() => {
@@ -88,13 +49,6 @@ export function UniversalVerseSelector({
     setSelectedChapter(0);
     setSelectedVerse(0);
     setVerses([]);
-    // Réinitialiser la traduction selon le nouveau type
-    if (sourceType === 'bible' || sourceType === 'contributive') {
-      // Bible regroupe officielle + contributive, utilise crampon par défaut
-      setSelectedTranslation('crampon');
-    } else if (sourceType === 'apocryphal') {
-      setSelectedTranslation('auto');
-    }
   }, [sourceType]);
 
   // Reset chapitre et verset quand le livre change
@@ -132,24 +86,10 @@ export function UniversalVerseSelector({
     if (selectedBookId && selectedChapter > 0 && selectedVerse > 0) {
       const book = books.find(b => b.id === selectedBookId);
       if (book) {
-        onVerseSelected(selectedBookId, book.name, selectedChapter, selectedVerse, selectedTranslation, sourceType);
+        onVerseSelected(selectedBookId, book.name, selectedChapter, selectedVerse, sourceType);
       }
     }
-  }, [selectedBookId, selectedChapter, selectedVerse, selectedTranslation, sourceType, onVerseSelected, books]);
-
-  const getTranslations = () => {
-    switch (sourceType) {
-      case 'bible':
-        // Bible regroupe officielle + communautaire
-        return [...bibleTranslations, ...contributiveTranslations];
-      case 'contributive':
-        return contributiveTranslations;
-      case 'apocryphal':
-        return apocryphalTranslations;
-      default:
-        return bibleTranslations;
-    }
-  };
+  }, [selectedBookId, selectedChapter, selectedVerse, sourceType, onVerseSelected, books]);
 
   return (
     <div className="space-y-4">
@@ -210,25 +150,6 @@ export function UniversalVerseSelector({
         </select>
       </div>
 
-      {/* Sélection de la traduction */}
-      <div>
-        <label htmlFor="translation" className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Traduction <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="translation"
-          name="translation"
-          value={selectedTranslation}
-          onChange={(e) => setSelectedTranslation(e.target.value)}
-          className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all bg-white"
-          required
-        >
-          {getTranslations().map(t => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
-      </div>
-
       {/* Sélection du chapitre */}
       <div>
         <label htmlFor="chapter" className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -282,9 +203,6 @@ export function UniversalVerseSelector({
             'text-amber-700'
           }`}>
             📍 {currentBook?.name} {selectedChapter}:{selectedVerse}
-            <span className="ml-2 text-xs bg-white px-2 py-0.5 rounded">
-              {getTranslations().find(t => t.id === selectedTranslation)?.name}
-            </span>
             <span className={`ml-2 text-xs px-2 py-0.5 rounded ${
               sourceType === 'bible' || sourceType === 'contributive' ? 'bg-accent text-white' :
               'bg-amber-500 text-white'

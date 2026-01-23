@@ -32,7 +32,7 @@ export function RadioPlayer() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center shadow-md overflow-hidden">
               <img
-                src="https://heavenradio.fr/assets/png/HR_LOGO-h3iEjxvO.png"
+                src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1769163275/HR_LOGO-h3iEjxvO_yyrilc.png"
                 alt="Heaven Radio"
                 className="w-full h-full object-contain p-1"
               />

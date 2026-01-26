@@ -32,19 +32,16 @@ export function ChapterContentWrapper({
   const [displayVerses, setDisplayVerses] = useState(verses);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Charger les versets manquants pour Jérusalem
+  // Charger les versets avec gestion des traductions manquantes
   useEffect(() => {
     const loadVersesWithGaps = async () => {
-      if (currentTranslation === 'jerusalem') {
-        setIsLoading(true);
+      setIsLoading(true);
 
+      if (currentTranslation === 'jerusalem') {
         // Récupérer les versets Crampon pour comparer
         const cramponResult = await getChapterAction(bookSlug, chapter, 'crampon');
 
-        if (cramponResult.success && cramponResult.verses) {
-          // Créer un Set des numéros de versets Jérusalem existants
-          const jerusalemVerseNumbers = new Set(verses.map(v => v.verse));
-
+        if (cramponResult.success && cramponResult.verses && cramponResult.verses.length > 0) {
           // Combiner les versets Jérusalem avec les placeholders pour les manquants
           const combinedVerses = cramponResult.verses.map((cramponVerse) => {
             const jerusalemVerse = verses.find(v => v.verse === cramponVerse.verse);
@@ -57,12 +54,33 @@ export function ChapterContentWrapper({
             };
           });
           setDisplayVerses(combinedVerses);
+        } else {
+          // Pas de versets Crampon disponibles - afficher Jérusalem directement
+          setDisplayVerses(verses);
         }
-        setIsLoading(false);
       } else {
-        // Pour Crampon, utiliser les versets directement
-        setDisplayVerses(verses);
+        // Pour Crampon, vérifier si les versets existent
+        if (verses.length > 0) {
+          setDisplayVerses(verses);
+        } else {
+          // Pas de versets Crampon - essayer de charger Jérusalem comme fallback
+          const jerusalemResult = await getChapterAction(bookSlug, chapter, 'jerusalem');
+          if (jerusalemResult.success && jerusalemResult.verses && jerusalemResult.verses.length > 0) {
+            // Marquer tous les versets comme manquants en Crampon
+            const combinedVerses = jerusalemResult.verses.map((jerusalemVerse) => ({
+              ...jerusalemVerse,
+              id: `missing-${jerusalemVerse.id}`,
+              text: jerusalemVerse.text, // Afficher le texte Jérusalem
+              translation_id: 'crampon',
+              isMissing: true,
+            }));
+            setDisplayVerses(combinedVerses);
+          } else {
+            setDisplayVerses([]);
+          }
+        }
       }
+      setIsLoading(false);
     };
 
     loadVersesWithGaps();

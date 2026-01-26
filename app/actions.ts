@@ -489,9 +489,11 @@ const CreateAnnotationSchema = z.object({
 });
 
 const CreateExternalSourceSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().min(1, 'Le titre est requis'),
   author_name: z.string().optional(),
-  source_type: z.enum(['saint', 'father', 'council', 'catechism', 'document']),
+  source_type: z.enum(['saint', 'father', 'council', 'catechism', 'document'], {
+    errorMap: () => ({ message: 'Veuillez sélectionner un type de source' }),
+  }),
   reference: z.string().optional(),
   content: z.string().optional(),
   description: z.string().optional(),
@@ -1024,7 +1026,10 @@ export async function createAndLinkExternalSourceAction(
   });
 
   if (!validatedFields.success) {
-    return { error: 'Champs invalides' };
+    // Extraire le premier message d'erreur pour aider l'utilisateur
+    const firstError = validatedFields.error.errors[0];
+    const errorMessage = firstError?.message || 'Champs invalides';
+    return { error: errorMessage };
   }
 
   const supabase = await createClient();
@@ -1347,6 +1352,36 @@ export async function getVerseContributionsAction(verseId: string) {
     annotations: annotationsWithReplies,
     external_sources: external_sources || [],
   };
+}
+
+/**
+ * Récupère toutes les contributions pour un verset par ses coordonnées (book_id, chapter, verse)
+ * Utile quand on n'a pas de verse_id valide (ex: versets manquants dans une traduction)
+ */
+export async function getVerseContributionsByCoordinatesAction(
+  bookId: string,
+  chapter: number,
+  verseNumber: number
+) {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+
+  // Trouver tous les verse_ids qui correspondent à ces coordonnées (toutes traductions)
+  const { data: allVerses } = await supabase
+    .from('bible_verses')
+    .select('id')
+    .eq('book_id', bookId)
+    .eq('chapter', chapter)
+    .eq('verse', verseNumber);
+
+  if (!allVerses || allVerses.length === 0) {
+    console.log('[getVerseContributionsByCoordinatesAction] No verses found for coordinates:', { bookId, chapter, verseNumber });
+    return { links: [], wiki_links: [], annotations: [], external_sources: [] };
+  }
+
+  // Utiliser le premier verse_id trouvé pour appeler getVerseContributionsAction
+  const firstVerseId = allVerses[0].id;
+  return getVerseContributionsAction(firstVerseId);
 }
 
 /**

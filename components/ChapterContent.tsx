@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { VerseCardMemo as VerseCard } from './VerseCard';
 import { ContributionButton } from './ContributionButton';
-import { getVerseContributionsAction, getVerseAction, getBibleEntitiesAction } from '@/app/actions';
+import { getVerseContributionsAction, getVerseContributionsByCoordinatesAction, getVerseAction, getBibleEntitiesAction } from '@/app/actions';
 import type { BibleEntity } from '@/app/actions';
 
 interface Verse {
@@ -84,16 +84,28 @@ export function ChapterContent({
     setLoading(true);
 
     // Fetch contributions for this verse
-    const result = await getVerseContributionsAction(verseId);
+    // Si l'ID est temporaire (commence par "missing-"), utiliser les coordonnées
+    let result;
+    if (verseId.startsWith('missing-')) {
+      result = await getVerseContributionsByCoordinatesAction(bookId, chapter, verseNumber);
+    } else {
+      result = await getVerseContributionsAction(verseId);
+    }
     setContributions(result);
     setLoading(false);
   };
 
   const handleRefreshContributions = async () => {
-    if (selectedVerseId) {
+    if (selectedVerseId && selectedVerseNumber) {
       console.log('[ChapterContent] handleRefreshContributions START for verse:', selectedVerseId);
       setLoading(true);
-      const result = await getVerseContributionsAction(selectedVerseId);
+      // Si l'ID est temporaire, utiliser les coordonnées
+      let result;
+      if (selectedVerseId.startsWith('missing-')) {
+        result = await getVerseContributionsByCoordinatesAction(bookId, chapter, selectedVerseNumber);
+      } else {
+        result = await getVerseContributionsAction(selectedVerseId);
+      }
       console.log('[ChapterContent] getVerseContributionsAction result:', result);
       setContributions(result);
       setLoading(false);

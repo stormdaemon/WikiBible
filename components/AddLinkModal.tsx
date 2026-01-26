@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useActionState } from 'react';
-import { createUniversalLinkWithSourceAction, createAnnotationAction, createAndLinkExternalSourceAction } from '@/app/actions';
+import { createUniversalLinkWithSourceAction, createAnnotationAction, createAndLinkExternalSourceAction, createVerseLinkExtendedAction } from '@/app/actions';
 import { UniversalVerseSelector } from './UniversalVerseSelector';
 import type { VerseSourceType } from './UniversalVerseSelector';
 
 type Step = 1 | 2;
-type Category = 'bible_link' | 'commentary' | 'external_reference' | null;
+type Category = 'bible_link' | 'commentary' | 'external_reference' | 'wiki_link' | null;
 
 interface AddLinkModalProps {
   verseId: string;
@@ -20,9 +20,11 @@ interface AddLinkModalProps {
 export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType = 'bible' }: AddLinkModalProps) {
   // État pour chaque type d'action
   const [linkState, linkFormAction, linkPending] = useActionState(createUniversalLinkWithSourceAction, null);
+  const [wikiLinkState, wikiLinkFormAction, wikiLinkPending] = useActionState(createVerseLinkExtendedAction, null);
   const [annotationState, setAnnotationState] = useState<{ success?: boolean; error?: string } | null>(null);
   const [externalState, setExternalState] = useState<{ success?: boolean; error?: string } | null>(null);
   const [pending, setPending] = useState(false);
+  const [wikiSearchQuery, setWikiSearchQuery] = useState('');
 
   const [step, setStep] = useState<Step>(1);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
@@ -35,7 +37,8 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
   // État unifié pour afficher les erreurs/succès
   const state = selectedCategory === 'bible_link' ? linkState :
                 selectedCategory === 'commentary' ? annotationState :
-                selectedCategory === 'external_reference' ? externalState : null;
+                selectedCategory === 'external_reference' ? externalState :
+                selectedCategory === 'wiki_link' ? wikiLinkState : null;
 
   // Effet pour détecter le succès et lancer le compte à rebours
   useEffect(() => {
@@ -77,6 +80,7 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
       setTargetSourceType('bible');
       setAnnotationState(null);
       setExternalState(null);
+      setWikiSearchQuery('');
       setPending(false);
       setShowSuccess(false);
       setCountdown(null);
@@ -160,6 +164,7 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
     setSelectedVerse(null);
     setSelectedBook(null);
     setTargetSourceType('bible');
+    setWikiSearchQuery('');
   };
 
   const handleVerseSelected = useCallback((
@@ -340,13 +345,36 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                   </svg>
                 </div>
               </button>
+
+              <button
+                onClick={() => handleCategorySelect('wiki_link')}
+                className="w-full p-4 border-2 border-slate-200 rounded-lg hover:border-accent hover:bg-accent/5 transition-all text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-violet-100 rounded-lg group-hover:bg-violet-200 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-700">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                      <path d="M2 17l10 5 10-5" />
+                      <path d="M2 12l10 5 10-5" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-primary">📝 Lier à un article Wiki</h3>
+                    <p className="text-sm text-slate-600">Associer ce verset à un article WikiBible</p>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 group-hover:text-accent transition-colors">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </button>
             </div>
           )}
 
           {/* Step 2: Form based on category */}
           {step === 2 && selectedCategory && (
             <form
-              action={selectedCategory === 'bible_link' ? linkFormAction : undefined}
+              action={selectedCategory === 'bible_link' ? linkFormAction :
+                     selectedCategory === 'wiki_link' ? wikiLinkFormAction : undefined}
               onSubmit={selectedCategory === 'commentary' ? handleAnnotationSubmit :
                        selectedCategory === 'external_reference' ? handleExternalSubmit :
                        undefined}
@@ -572,6 +600,56 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                 </>
               )}
 
+              {/* Wiki Link Form */}
+              {selectedCategory === 'wiki_link' && (
+                <>
+                  <input type="hidden" name="link_type" value="wiki" />
+
+                  <div>
+                    <label htmlFor="target_verse" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                      Titre de l'article Wiki <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="target_verse"
+                      name="target_verse"
+                      value={wikiSearchQuery}
+                      onChange={(e) => setWikiSearchQuery(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                      placeholder="Ex: Jésus-Christ, Saint Paul, Eucharistie..."
+                      required
+                    />
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      Entrez le titre exact de l'article wiki existant que vous souhaitez lier à ce verset.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="wiki_description" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                      Description du lien (optionnel)
+                    </label>
+                    <textarea
+                      id="wiki_description"
+                      name="description"
+                      rows={3}
+                      className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                      placeholder="Expliquez pourquoi ce verset est lié à cet article..."
+                    />
+                  </div>
+
+                  <div className="p-3 bg-violet-50 border border-violet-200 rounded-lg text-sm text-violet-800">
+                    <div className="flex items-start gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      </svg>
+                      <span>L'article wiki doit exister. Vous pouvez créer un article depuis la section <a href="/wiki/new" className="underline font-medium">Wiki</a>.</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Description optionnelle pour tous */}
               {selectedCategory === 'bible_link' && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
@@ -606,10 +684,10 @@ export function AddLinkModal({ verseId, isOpen, onClose, onRefresh, sourceType =
                 </button>
                 <button
                   type="submit"
-                  disabled={pending || linkPending || showSuccess || (selectedCategory === 'bible_link' && !selectedVerse)}
+                  disabled={pending || linkPending || wikiLinkPending || showSuccess || (selectedCategory === 'bible_link' && !selectedVerse) || (selectedCategory === 'wiki_link' && !wikiSearchQuery.trim())}
                   className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  {(pending || linkPending) ? (
+                  {(pending || linkPending || wikiLinkPending) ? (
                     <>
                       <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 12a9 9 0 11-6.219-8.56" />

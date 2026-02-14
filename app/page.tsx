@@ -356,7 +356,7 @@ export default function HomePage() {
               </div>
             </a>
 
-            {/* Bible en Main */}
+            {/* Biblion */}
             <a
               href="https://www.appcatholique.com/"
               target="_blank"
@@ -366,13 +366,13 @@ export default function HomePage() {
               <div className="relative h-24 mb-4 flex items-center justify-center">
                 <img
                   src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
-                  alt="Bible en Main"
+                  alt="Biblion"
                   className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
                 <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
-                  Bible en Main
+                  Biblion
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -458,7 +458,7 @@ export default function HomePage() {
                 <p className="text-xs text-secondary">Superviseur</p>
               </a>
 
-              {/* Bible en Main */}
+              {/* Biblion */}
               <a
                 href="https://www.tiktok.com/@bible_en_main"
                 target="_blank"
@@ -468,11 +468,11 @@ export default function HomePage() {
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
                   <img
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
-                    alt="Bible en Main"
+                    alt="Biblion"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Bible en Main</h4>
+                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Biblion</h4>
                 <p className="text-xs text-secondary">Contributeur</p>
               </a>
 

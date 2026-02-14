@@ -423,8 +423,12 @@ export default function HomePage() {
                 <p className="text-xs text-accent font-medium mt-1">Évêque accompagnateur</p>
               </div>
               <div className="bg-white rounded-xl p-6 border border-border text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent flex items-center justify-center bg-accent-soft">
-                  <span className="text-3xl">&#x271E;</span>
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771071014/WhatsApp_Image_2026-02-14_at_12.52.30_mzmuv7.jpg"
+                    alt="Père Daniel Doré"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h4 className="font-bold text-primary text-sm">Père Daniel Doré</h4>
                 <p className="text-xs text-accent font-medium mt-1">Bibliste - Direction</p>

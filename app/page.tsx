@@ -165,7 +165,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Heaven Radio */}
             <a
               href="https://heavenradio.fr/"
@@ -355,6 +355,159 @@ export default function HomePage() {
                 <p className="text-xs text-secondary">Formation catholique</p>
               </div>
             </a>
+
+            {/* Bible en Main */}
+            <a
+              href="https://www.appcatholique.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
+            >
+              <div className="relative h-24 mb-4 flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                  alt="Bible en Main"
+                  className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
+                  Bible en Main
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14 21 3"></path>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  </svg>
+                </h3>
+                <p className="text-xs text-secondary">Application catholique</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Direction ecclésiastique & Équipe */}
+      <section className="bg-background py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Direction ecclésiastique */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif font-bold text-primary mb-3">Direction & Contributeurs</h2>
+            <p className="text-secondary max-w-2xl mx-auto">
+              Ceux qui portent et accompagnent le projet WikiBible
+            </p>
+          </div>
+
+          <div className="mb-12">
+            <h3 className="text-lg font-serif font-bold text-primary mb-6 text-center">Direction ecclésiastique</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <div className="bg-white rounded-xl p-6 border border-border text-center">
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069963/WhatsApp_Image_2026-02-14_at_12.51.09_o5ajqh.jpg"
+                    alt="Mgr Dominique Rey"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="font-bold text-primary text-sm">Mgr Dominique Rey</h4>
+                <p className="text-xs text-accent font-medium mt-1">Évêque accompagnateur</p>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-border text-center">
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent flex items-center justify-center bg-accent-soft">
+                  <span className="text-3xl">&#x271E;</span>
+                </div>
+                <h4 className="font-bold text-primary text-sm">Père Daniel Doré</h4>
+                <p className="text-xs text-accent font-medium mt-1">Bibliste - Direction</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Contributeurs */}
+          <div>
+            <h3 className="text-lg font-serif font-bold text-primary mb-6 text-center">Contributeurs du projet</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-3xl mx-auto">
+              {/* Flot - Superviseur */}
+              <a
+                href="https://www.tiktok.com/@flot5402"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-center"
+              >
+                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069904/1358f1e382280eb3bd555a592cebade8_tplv-tiktokx-cropcenter_1080_1080_qj0tos.jpg"
+                    alt="Flot"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Flot</h4>
+                <p className="text-xs text-secondary">Superviseur</p>
+              </a>
+
+              {/* Bible en Main */}
+              <a
+                href="https://www.tiktok.com/@bible_en_main"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-center"
+              >
+                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                    alt="Bible en Main"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Bible en Main</h4>
+                <p className="text-xs text-secondary">Contributeur</p>
+              </a>
+
+              {/* Sam */}
+              <a
+                href="https://www.tiktok.com/@samlorrens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-center"
+              >
+                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069744/6a4b6cd112120c1eaf067fd0b5ea76a2_tplv-tiktokx-cropcenter_1080_1080_vvpgoz.jpg"
+                    alt="Sam"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Sam</h4>
+                <p className="text-xs text-secondary">Contributeur</p>
+              </a>
+
+              {/* Ilion.trad - Ressources Catholiques */}
+              <a
+                href="https://www.tiktok.com/@ilion.trad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-center"
+              >
+                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <img
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069842/51d0f9e93aa3b66843d5b64f7a1fb26a_tplv-tiktokx-cropcenter_100_100_izee4f.jpg"
+                    alt="Ilion.trad"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Ressources Catholiques</h4>
+                <p className="text-xs text-secondary">Contributeur</p>
+              </a>
+            </div>
           </div>
         </div>
       </section>

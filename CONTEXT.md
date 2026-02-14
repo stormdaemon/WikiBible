@@ -498,15 +498,16 @@ const CONTRIBUTION_POINTS = {
 
 ---
 
-## Scripts NPM Disponibles
+## Runtime : Bun (PAS npm/yarn)
 
-```json
-{
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint"
-}
+**Bun est le SEUL runtime/package manager utilisé.** Ne jamais utiliser npm, yarn ou pnpm.
+
+```bash
+bun dev        # Lancer le serveur de développement
+bun run build  # Build de production
+bun start      # Démarrer en production
+bun run lint   # Linter
+bun install    # Installer les dépendances
 ```
 
 ---

@@ -47,7 +47,7 @@ export default async function LeaderboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {top3.map((entry, index) => {
               const medal = medals[index];
-              const username = entry.user?.raw_user_meta_data?.username || 'Anonyme';
+              const username = entry.user_profiles?.full_name || entry.user_profiles?.username || 'Anonyme';
               const hearts = entry.total_hearts || 0;
 
               return (
@@ -90,7 +90,7 @@ export default async function LeaderboardPage() {
                 <tbody className="divide-y divide-slate-200">
                   {rest.map((entry, index) => {
                     const rank = index + 4; // Commence à 4
-                    const username = entry.user?.raw_user_meta_data?.username || 'Anonyme';
+                    const username = entry.user_profiles?.full_name || entry.user_profiles?.username || 'Anonyme';
                     const hearts = entry.total_hearts || 0;
 
                     return (

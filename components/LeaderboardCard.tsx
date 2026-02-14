@@ -9,6 +9,7 @@ interface LeaderboardCardProps {
     rank: number | null;
     user_profiles?: {
       username: string | null;
+      full_name: string | null;
       confession: string | null;
     } | null;
   };
@@ -30,7 +31,7 @@ export function LeaderboardCard({ rank, entry, isCurrentUser = false }: Leaderbo
       <div className="flex-1 w-full">
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-base sm:text-lg text-primary">
-            {entry.user_profiles?.username || 'Anonyme'}
+            {entry.user_profiles?.full_name || entry.user_profiles?.username || 'Anonyme'}
           </h3>
           {isCurrentUser && (
             <span className="badge badge--accent text-xs">Vous</span>

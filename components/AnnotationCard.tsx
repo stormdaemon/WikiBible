@@ -64,7 +64,7 @@ export function AnnotationCard({
 
           {/* Nom auteur */}
           <span className="text-sm text-slate-600">
-            Par {author.username || 'Anonyme'}
+            Par {author.full_name || author.username || 'Anonyme'}
           </span>
 
           {/* Date */}

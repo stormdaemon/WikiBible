@@ -368,7 +368,7 @@ export function VerseCard({
               <span
                 key={link.id}
                 className={`px-2 py-0.5 rounded text-xs font-medium border ${colorClass}`}
-                title={`Par ${link.author.username || 'Anonyme'} (${link.author.confession})`}
+                title={`Par ${link.author.full_name || link.author.username || 'Anonyme'} (${link.author.confession})`}
               >
                 {label}
               </span>

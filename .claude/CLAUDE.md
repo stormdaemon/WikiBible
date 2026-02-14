@@ -22,6 +22,7 @@ For EVERY task (even micro-coding), you MUST follow this loop:
 7. **Post-Check**: Verify with MCP that the logic and DB constraints are still in sync.
 
 ## 🏗 Stack Implementation Rules
+- **Runtime**: **Bun** uniquement. JAMAIS npm, yarn ou pnpm. Utiliser `bun dev`, `bun run build`, `bun install`, etc.
 - **Framework**: Next.js 16.1 (App Router ONLY).
 - **React 19.2**: Use `use()` for data fetching in Client Components, `action` prop in forms.
 - **Tailwind v4**: CSS-first. All themes in `app/globals.css` using `@theme`. NO `tailwind.config.js` unless requested.

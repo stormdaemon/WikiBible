@@ -101,7 +101,7 @@ export async function registerAction(state: ActionResult | null, formData: FormD
         name,
         confession,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://wikibibledev.netlify.app'}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://wikibible.fr'}/auth/callback`,
     },
   });
 
@@ -109,19 +109,20 @@ export async function registerAction(state: ActionResult | null, formData: FormD
     return { error: error.message };
   }
 
-  // Créer automatiquement le profil dans user_profiles
+  // Mettre à jour le profil créé par le trigger handle_new_user
+  // Le trigger crée le profil avec username=name, mais on s'assure que full_name et confession sont corrects
   if (data.user) {
     const profileError = await supabase
       .from('user_profiles')
-      .insert({
+      .upsert({
         user_id: data.user.id,
-        username: null, // L'utilisateur pourra le changer plus tard
+        username: name,
         confession: confession || 'catholic',
         full_name: name,
-      });
+      }, { onConflict: 'user_id' });
 
     if (profileError.error) {
-      console.error('Erreur lors de la création du profil:', profileError.error);
+      console.error('Erreur lors de la mise à jour du profil:', profileError.error);
     }
   }
 
@@ -490,15 +491,17 @@ const CreateAnnotationSchema = z.object({
 
 const CreateExternalSourceSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
-  author_name: z.string().optional(),
+  author_name: z.string().nullish(),
   source_type: z.enum(['saint', 'father', 'council', 'catechism', 'document'], {
     errorMap: () => ({ message: 'Veuillez sélectionner un type de source' }),
   }),
-  reference: z.string().optional(),
-  content: z.string().optional(),
-  description: z.string().optional(),
+  reference: z.string().nullish(),
+  content: z.string().nullish(),
+  description: z.string().nullish(),
 }).transform((data) => ({
   ...data,
+  author_name: data.author_name || null,
+  reference: data.reference || null,
   // Utiliser description comme fallback si content est vide
   content: data.content || data.description || '',
 }));
@@ -1119,7 +1122,7 @@ export async function getVerseContributionsAction(verseId: string) {
   const { data: authorProfiles } = authorIds.length > 0
     ? await supabase
       .from('user_profiles')
-      .select('user_id, username, confession')
+      .select('user_id, username, full_name, confession')
       .in('user_id', authorIds as string[])
     : { data: [] };
 

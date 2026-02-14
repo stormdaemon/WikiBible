@@ -528,7 +528,7 @@ function VerseLinkItem({
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-              {link.author.username || 'Anonyme'}
+              {link.author.full_name || link.author.username || 'Anonyme'}
             </span>
           )}
           {link.created_at && (
@@ -881,7 +881,7 @@ function AnnotationItem({ annotation, verseId, depth = 0, onRefresh, currentUser
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            <span className="truncate">{annotation.user_profile?.username || 'Anonyme'}</span>
+            <span className="truncate">{annotation.user_profile?.full_name || annotation.user_profile?.username || 'Anonyme'}</span>
           </span>
           {/* Badge pour le type d'annotation */}
           {annotation.annotation_type === 'commentary' && (

@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server-action';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import { notifyAdminsNewContribution } from '@/lib/emailjs';
 
 // === TYPES ===
 
@@ -248,6 +249,15 @@ export async function createArticleAction(state: ActionResult<{ slug: string }> 
   }
 
   revalidatePath(`/wiki/${slug}`);
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Article wiki',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: content.substring(0, 200),
+    reference: `Article: ${title}`,
+  });
+
   return { success: true, slug };
 }
 
@@ -286,6 +296,15 @@ export async function updateArticleAction(state: ActionResult | null, formData: 
   }
 
   revalidatePath(`/wiki/[slug]`);
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Modification article wiki',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: comment || content.substring(0, 200),
+    reference: `Article ID: ${article_id}`,
+  });
+
   return { success: true };
 }
 
@@ -844,6 +863,15 @@ export async function createVerseLinkAction(
   // Revalider les pages des chapitres concernés pour afficher les nouveaux liens
   // On utilise revalidatePath avec le chemin du verset source pour rafraîchir le cache
   revalidatePath('/bible/[bookId]/[chapter]');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Renvoi biblique',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: description || link_type,
+    reference: `Lien: ${source_verse_id} → ${target_verse || ''}`,
+  });
+
   return { success: true };
 }
 
@@ -927,6 +955,15 @@ export async function createAnnotationAction(
   revalidatePath('/bible/[book]/[chapter]', 'page');
 
   console.log('[createAnnotationAction] === END SUCCESS ===');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Annotation',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: content,
+    reference: `Verset: ${verse_id}`,
+  });
+
   return { success: true };
 }
 
@@ -966,6 +1003,14 @@ export async function createExternalSourceAction(
 
   // Mettre à jour le score de l'utilisateur
   await updateUserScore(user.id, 'external_source');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Source externe',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: validatedFields.data.title,
+    reference: `Source: ${validatedFields.data.author_name || validatedFields.data.source_type}`,
+  });
 
   return { success: true };
 }
@@ -1074,6 +1119,15 @@ export async function createAndLinkExternalSourceAction(
   await updateUserScore(user.id, 'external_source');
 
   revalidatePath('/bible/[book]/[chapter]');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Source externe liée',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: validatedFields.data.title,
+    reference: `Source: ${validatedFields.data.author_name || validatedFields.data.source_type} → Verset: ${verseId}`,
+  });
+
   return { success: true };
 }
 
@@ -2040,6 +2094,14 @@ export async function submitVerseTranslationAction(
   revalidatePath('/bible-contributive');
   revalidatePath('/classement-contributeurs');
 
+  notifyAdminsNewContribution({
+    contribution_type: 'Traduction de verset',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: text,
+    reference: `Verset: ${verse_id} (${translation_id})`,
+  });
+
   return { success: true };
 }
 
@@ -2153,6 +2215,14 @@ export async function createEntityAction(
     return { error: error.message };
   }
 
+  notifyAdminsNewContribution({
+    contribution_type: 'Entité biblique',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: `${name} (${entity_type}): ${summary}`,
+    reference: `Entité: ${name}`,
+  });
+
   return { success: true, entity: data };
 }
 
@@ -2226,6 +2296,14 @@ export async function addVerseAction(
   revalidatePath('/bible-contributive');
   revalidatePath('/classement-contributeurs');
 
+  notifyAdminsNewContribution({
+    contribution_type: 'Ajout de verset',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: text,
+    reference: `Chapitre ${chapter}, verset ${verse} (${translation_id})`,
+  });
+
   return { success: true, data: data as { id: string; text: string } };
 }
 
@@ -2276,6 +2354,14 @@ export async function updateVerseAction(
   revalidatePath('/bible/[bookId]/[chapter]');
   revalidatePath('/bible-contributive');
   revalidatePath('/classement-contributeurs');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Modification de verset',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: text,
+    reference: `Verset: ${verse_id}`,
+  });
 
   return { success: true };
 }
@@ -2408,6 +2494,14 @@ export async function submitCommunityTranslationAction(
   revalidatePath('/bible-contributive/[bookId]/[chapter]');
   revalidatePath('/bible-contributive');
   revalidatePath('/classement-contributeurs');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Traduction communautaire',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: text,
+    reference: `Chapitre ${chapter}, verset ${verse} (${translation_id})`,
+  });
 
   return { success: true, data: data as { id: string; text: string } };
 }
@@ -2719,6 +2813,14 @@ export async function createVerseLinkUniversalAction(
   revalidatePath('/bible-contributive/[bookId]/[chapter]');
   revalidatePath('/apocrypha');
 
+  notifyAdminsNewContribution({
+    contribution_type: 'Renvoi biblique universel',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: description || link_type,
+    reference: `${source_verse_type}: ${source_verse_id} → ${target_verse}`,
+  });
+
   return { success: true, data: linkResult };
 }
 
@@ -2838,6 +2940,15 @@ export async function createVerseLinkExtendedAction(
 
     await updateUserScore(user.id, 'verse_link');
     revalidatePath('/bible/[bookId]/[chapter]');
+
+    notifyAdminsNewContribution({
+      contribution_type: 'Renvoi wiki',
+      contributor_name: user.user_metadata?.full_name || user.email || '',
+      contributor_email: user.email || '',
+      contribution_text: description || 'Lien wiki',
+      reference: `${source_verse_id} → ${target_verse}`,
+    });
+
     return { success: true };
   }
 
@@ -2917,6 +3028,14 @@ export async function createVerseLinkExtendedAction(
   await updateUserScore(user.id, 'verse_link');
   revalidatePath('/bible/[bookId]/[chapter]');
   revalidatePath('/bible-contributive/[bookId]/[chapter]');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Renvoi biblique étendu',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: description || link_type,
+    reference: `${source_verse_id} → ${target_verse}`,
+  });
 
   return { success: true };
 }
@@ -3244,6 +3363,14 @@ export async function createUniversalLinkWithSourceAction(
   revalidatePath('/bible/[bookId]/[chapter]');
   revalidatePath('/bible-contributive/[bookId]/[chapter]');
   revalidatePath('/apocrypha/[slug]');
+
+  notifyAdminsNewContribution({
+    contribution_type: 'Renvoi universel',
+    contributor_name: user.user_metadata?.full_name || user.email || '',
+    contributor_email: user.email || '',
+    contribution_text: description || link_type,
+    reference: `${source_type}: ${source_verse_id} → ${target_verse}`,
+  });
 
   return { success: true };
 }

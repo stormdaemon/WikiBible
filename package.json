@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@emailjs/nodejs": "^5.0.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.45.4",
     "@tailwindcss/postcss": "^4.1.18",
@@ -35,6 +38,7 @@
     "eslint-config-next": "^16.1.0",
     "supabase": "^2.72.7",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }

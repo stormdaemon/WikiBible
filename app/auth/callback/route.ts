@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
 
     try {
-      // Pour signup avec PKCE, on doit utiliser verifyOtp avec token_hash
       const { data, error } = await supabase.auth.verifyOtp({
         type: type as any,
         token_hash,
@@ -27,7 +26,11 @@ export async function GET(request: NextRequest) {
 
       console.log('Verification successful!', data);
 
-      // Redirection vers la page d'accueil après confirmation réussie
+      // Redirection selon le type de vérification
+      if (type === 'email_change') {
+        return NextResponse.redirect(new URL('/profil?email_updated=true', request.url));
+      }
+
       return NextResponse.redirect(new URL('/auth/login?verified=true', request.url));
     } catch (error) {
       console.error('Unexpected error during verification:', error);

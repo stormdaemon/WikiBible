@@ -130,6 +130,41 @@ export async function registerAction(state: ActionResult | null, formData: FormD
   return { success: true, data };
 }
 
+const UpdateEmailSchema = z.object({
+  email: z.string().email('Adresse email invalide'),
+});
+
+export async function updateEmailAction(state: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const validatedFields = UpdateEmailSchema.safeParse({
+    email: formData.get('email'),
+  });
+
+  if (!validatedFields.success) {
+    return { error: 'Adresse email invalide.' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Non authentifié' };
+  }
+
+  const { email } = validatedFields.data;
+
+  if (email === user.email) {
+    return { error: 'C\'est déjà votre adresse email actuelle.' };
+  }
+
+  const { error } = await supabase.auth.updateUser({ email });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
 export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();

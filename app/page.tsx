@@ -135,8 +135,8 @@ export default function HomePage() {
               <p className="text-xs text-secondary">46 livres</p>
             </div>
             <div className="space-y-2">
-              <h3 className="text-sm font-bold text-accent uppercase">Pentateuque</h3>
-              <p className="text-xs text-secondary">Genèse, Exode, Lévitique, Nombres, Deutéronome</p>
+              <h3 className="text-sm font-bold text-accent uppercase">Psaumes</h3>
+              <p className="text-xs text-secondary">150 psaumes, prières et louanges</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-accent uppercase">Livres Historiques</h3>
@@ -238,7 +238,7 @@ export default function HomePage() {
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   </svg>
                 </h3>
-                <p className="text-xs text-secondary">Évangélisation et mission</p>
+                <p className="text-xs text-secondary">Dépliants et ressources pour la mission</p>
               </div>
             </a>
 
@@ -365,7 +365,7 @@ export default function HomePage() {
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
                 <img
-                  src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                  src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771186012/ChatGPT_Image_15_f%C3%A9vr._2026_21_07_08_kf6s5i.png"
                   alt="Ressources catholiques"
                   className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
@@ -467,7 +467,7 @@ export default function HomePage() {
               >
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
                   <img
-                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069842/51d0f9e93aa3b66843d5b64f7a1fb26a_tplv-tiktokx-cropcenter_100_100_izee4f.jpg"
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771186012/ChatGPT_Image_15_f%C3%A9vr._2026_21_07_08_kf6s5i.png"
                     alt="Biblion"
                     className="w-full h-full object-cover"
                   />

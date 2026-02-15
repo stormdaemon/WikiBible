@@ -58,7 +58,7 @@ describe('buildTemplateParams', () => {
       reference: 'Genèse 1:1 (Crampon)',
       submitted_at: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}/),
       moderation_url: 'https://wikibible.fr/moderation',
-      to_email: 'admin1@wikibible.fr, admin2@wikibible.fr',
+      email: 'admin1@wikibible.fr, admin2@wikibible.fr',
     });
   });
 
@@ -149,7 +149,7 @@ describe('notifyAdminsNewContribution', () => {
       expect.objectContaining({
         contribution_type: 'Article wiki',
         contributor_name: 'Paul Martin',
-        to_email: 'admin1@wikibible.fr, admin2@wikibible.fr',
+        email: 'admin1@wikibible.fr, admin2@wikibible.fr',
         moderation_url: 'https://wikibible.fr/moderation',
       }),
       {

@@ -17,7 +17,7 @@ interface EmailTemplateParams {
   reference: string;
   submitted_at: string;
   moderation_url: string;
-  to_email: string;
+  email: string;
 }
 
 const MODERATION_URL = 'https://wikibible.fr/moderation';
@@ -49,7 +49,7 @@ export function buildTemplateParams(
     reference: notification.reference,
     submitted_at,
     moderation_url: MODERATION_URL,
-    to_email: toEmail,
+    email: toEmail,
   };
 }
 

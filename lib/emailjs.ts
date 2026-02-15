@@ -56,20 +56,16 @@ export function buildTemplateParams(
 export async function getModeratorEmails(): Promise<string> {
   try {
     const supabase = createPublicClient();
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('email')
-      .eq('is_moderator', true);
+    const { data, error } = await supabase.rpc('get_moderator_emails');
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      console.error('[EmailJS] RPC get_moderator_emails error:', error);
       return '';
     }
 
-    return data
-      .map((row: { email: string | null }) => row.email)
-      .filter((email): email is string => !!email && email.length > 0)
-      .join(', ');
-  } catch {
+    return data || '';
+  } catch (err) {
+    console.error('[EmailJS] getModeratorEmails exception:', err);
     return '';
   }
 }

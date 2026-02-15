@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Hoisted mocks to avoid "Cannot access before initialization"
-const { mockSend, mockSelect, mockEq, mockFrom } = vi.hoisted(() => {
+const { mockSend, mockRpc } = vi.hoisted(() => {
   const mockSend = vi.fn().mockResolvedValue({ status: 200, text: 'OK' });
-  const mockEq = vi.fn();
-  const mockSelect = vi.fn();
-  const mockFrom = vi.fn(() => ({ select: mockSelect }));
-  return { mockSend, mockSelect, mockEq, mockFrom };
+  const mockRpc = vi.fn();
+  return { mockSend, mockRpc };
 });
 
 vi.mock('@emailjs/nodejs', () => ({
@@ -14,7 +12,7 @@ vi.mock('@emailjs/nodejs', () => ({
 }));
 
 vi.mock('@/utils/supabase/server', () => ({
-  createPublicClient: () => ({ from: mockFrom }),
+  createPublicClient: () => ({ rpc: mockRpc }),
 }));
 
 import {
@@ -27,12 +25,8 @@ import {
 beforeEach(() => {
   vi.clearAllMocks();
   mockSend.mockResolvedValue({ status: 200, text: 'OK' });
-  mockSelect.mockReturnValue({ eq: mockEq });
-  mockEq.mockResolvedValue({
-    data: [
-      { email: 'admin1@wikibible.fr' },
-      { email: 'admin2@wikibible.fr' },
-    ],
+  mockRpc.mockResolvedValue({
+    data: 'admin1@wikibible.fr, admin2@wikibible.fr',
     error: null,
   });
 
@@ -102,17 +96,15 @@ describe('buildTemplateParams', () => {
 // --- getModeratorEmails ---
 
 describe('getModeratorEmails', () => {
-  it('should fetch moderator emails from user_profiles', async () => {
+  it('should call RPC get_moderator_emails', async () => {
     const emails = await getModeratorEmails();
 
-    expect(mockFrom).toHaveBeenCalledWith('user_profiles');
-    expect(mockSelect).toHaveBeenCalledWith('email');
-    expect(mockEq).toHaveBeenCalledWith('is_moderator', true);
+    expect(mockRpc).toHaveBeenCalledWith('get_moderator_emails');
     expect(emails).toBe('admin1@wikibible.fr, admin2@wikibible.fr');
   });
 
-  it('should return empty string when no moderators found', async () => {
-    mockEq.mockResolvedValue({ data: [], error: null });
+  it('should return empty string when RPC returns empty', async () => {
+    mockRpc.mockResolvedValue({ data: '', error: null });
 
     const emails = await getModeratorEmails();
 
@@ -120,27 +112,19 @@ describe('getModeratorEmails', () => {
   });
 
   it('should return empty string on supabase error', async () => {
-    mockEq.mockResolvedValue({ data: null, error: { message: 'DB error' } });
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'DB error' } });
 
     const emails = await getModeratorEmails();
 
     expect(emails).toBe('');
   });
 
-  it('should filter out null/empty emails', async () => {
-    mockEq.mockResolvedValue({
-      data: [
-        { email: 'admin1@wikibible.fr' },
-        { email: null },
-        { email: '' },
-        { email: 'admin2@wikibible.fr' },
-      ],
-      error: null,
-    });
+  it('should return empty string when data is null', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
 
     const emails = await getModeratorEmails();
 
-    expect(emails).toBe('admin1@wikibible.fr, admin2@wikibible.fr');
+    expect(emails).toBe('');
   });
 });
 
@@ -176,7 +160,7 @@ describe('notifyAdminsNewContribution', () => {
   });
 
   it('should not send email when no moderators found', async () => {
-    mockEq.mockResolvedValue({ data: [], error: null });
+    mockRpc.mockResolvedValue({ data: '', error: null });
 
     const notification: ContributionNotification = {
       contribution_type: 'Annotation',

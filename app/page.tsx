@@ -276,11 +276,11 @@ export default function HomePage() {
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   </svg>
                 </h3>
-                <p className="text-xs text-secondary">Événements catholiques</p>
+                <p className="text-xs text-secondary">Agence de communication pour les institutions catholiques</p>
               </div>
             </a>
 
-            {/* SOS Chrétiens d'Orient */}
+            {/* SOS Chrétiens d'Occident */}
             <a
               href="https://soschretiensdorient.netlify.app/"
               target="_blank"
@@ -290,13 +290,13 @@ export default function HomePage() {
               <div className="relative h-24 mb-4 flex items-center justify-center">
                 <img
                   src="https://res.cloudinary.com/da52mpv3g/image/upload/c_limit,w_256/f_auto/q_auto/v1/institut-apologetique/soscatho-png?_a=BAVC1WAQ0"
-                  alt="SOS Chrétiens d'Orient"
+                  alt="SOS Chrétiens d'Occident"
                   className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
                 <h3 className="font-bold text-primary mb-2 flex items-center justify-center gap-2 text-sm">
-                  SOS Chrétiens d'Orient
+                  SOS Chrétiens d'Occident
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -314,7 +314,7 @@ export default function HomePage() {
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   </svg>
                 </h3>
-                <p className="text-xs text-secondary">Aide aux chrétiens persécutés</p>
+                <p className="text-xs text-secondary">Aide aux chrétiens d'Occident</p>
               </div>
             </a>
 
@@ -467,7 +467,7 @@ export default function HomePage() {
               >
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
                   <img
-                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069842/51d0f9e93aa3b66843d5b64f7a1fb26a_tplv-tiktokx-cropcenter_100_100_izee4f.jpg"
                     alt="Biblion"
                     className="w-full h-full object-cover"
                   />
@@ -503,8 +503,8 @@ export default function HomePage() {
               >
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
                   <img
-                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069842/51d0f9e93aa3b66843d5b64f7a1fb26a_tplv-tiktokx-cropcenter_100_100_izee4f.jpg"
-                    alt="Ilion.trad"
+                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                    alt="Bible en main"
                     className="w-full h-full object-cover"
                   />
                 </div>

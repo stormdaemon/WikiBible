@@ -365,7 +365,7 @@ export default function HomePage() {
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
                 <img
-                  src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771186012/ChatGPT_Image_15_f%C3%A9vr._2026_21_07_08_kf6s5i.png"
+                  src="https://www.appcatholique.com/favicon.ico"
                   alt="Ressources catholiques"
                   className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />

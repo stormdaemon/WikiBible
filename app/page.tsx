@@ -365,7 +365,7 @@ export default function HomePage() {
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
                 <img
-                  src="https://www.appcatholique.com/favicon.ico"
+                  src="https://i.ibb.co/Tqx5GwLS/hgyt.png"
                   alt="Ressources catholiques"
                   className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />

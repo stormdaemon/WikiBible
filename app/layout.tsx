@@ -31,6 +31,15 @@ export const metadata: Metadata = {
   creator: "Parole et Partage",
   publisher: "WikiBible",
 
+  icons: {
+    icon: [
+      { url: ogImage, type: "image/jpeg" },
+    ],
+    apple: [
+      { url: ogImage },
+    ],
+  },
+
   // Open Graph - Facebook, Messenger, WhatsApp, LinkedIn, etc.
   openGraph: {
     type: "website",

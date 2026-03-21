@@ -553,10 +553,10 @@ const CreateExternalSourceSchema = z.object({
   content: z.string().nullish(),
   description: z.string().nullish(),
 }).transform((data) => ({
-  ...data,
+  title: data.title,
   author_name: data.author_name || null,
+  source_type: data.source_type,
   reference: data.reference || null,
-  // Utiliser description comme fallback si content est vide
   content: data.content || data.description || '',
 }));
 

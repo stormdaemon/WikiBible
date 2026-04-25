@@ -1,4 +1,4 @@
-import { getBookAction, getChapterAction } from '@/app/actions';
+import { getBookAction, getChapterAction, getOfficialBibleTranslationsAction } from '@/app/actions';
 import Link from 'next/link';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
@@ -32,17 +32,8 @@ export default async function ChapterPage({
 
   const book = bookResult.book;
   const publicSupabase = createPublicClient();
-  const { data: activeTranslations } = await publicSupabase
-    .from('bible_translations')
-    .select('slug, name')
-    .eq('is_active', true)
-    .eq('type', 'official')
-    .order('created_at', { ascending: true });
-
-  const activeOfficialTranslations = (activeTranslations || []).map((item) => ({
-    id: item.slug,
-    name: item.name,
-  }));
+  const translationsResult = await getOfficialBibleTranslationsAction();
+  const activeOfficialTranslations = translationsResult.translations || [];
   const activeTranslationIds = activeOfficialTranslations.map((item) => item.id);
   const { data: chapterTranslationRows } = activeTranslationIds.length > 0
     ? await publicSupabase

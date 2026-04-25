@@ -25,10 +25,8 @@ export default async function BibleContributivePage() {
             <span className="badge badge--accent">Liturgique</span>
             <span className="badge badge--accent">Tob</span>
             <span className="badge badge--accent">Vulgate</span>
-            <span className="badge badge--accent">Septante</span>
             <span className="badge badge--accent">Hébreu</span>
             <span className="badge badge--accent">Latin</span>
-            <span className="badge badge--accent">Grec</span>
           </div>
         </div>
 

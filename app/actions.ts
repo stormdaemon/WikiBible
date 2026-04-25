@@ -345,6 +345,18 @@ export async function updateArticleAction(state: ActionResult | null, formData: 
 
 // === BIBLE ACTIONS ===
 
+export interface BibleTranslationOption {
+  id: string;
+  name: string;
+}
+
+const OFFICIAL_BIBLE_TRANSLATION_FALLBACKS: BibleTranslationOption[] = [
+  { id: 'crampon', name: 'Bible Crampon' },
+  { id: 'jerusalem', name: 'Bible Jérusalem' },
+  { id: 'septante', name: 'Bible Septante' },
+  { id: 'grec', name: 'Bible Septante Grec' },
+];
+
 export async function getBooksAction() {
   const { createPublicClient } = await import('@/utils/supabase/server');
   const supabase = createPublicClient();
@@ -358,6 +370,34 @@ export async function getBooksAction() {
   }
 
   return { success: true, books: data };
+}
+
+export async function getOfficialBibleTranslationsAction(): Promise<{
+  success: boolean;
+  translations?: BibleTranslationOption[];
+  error?: string;
+}> {
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc('get_official_bible_translations');
+
+  if (error) {
+    return {
+      success: false,
+      translations: OFFICIAL_BIBLE_TRANSLATION_FALLBACKS,
+      error: error.message,
+    };
+  }
+
+  const translations = (data || []).map((translation) => ({
+    id: translation.id,
+    name: translation.name,
+  }));
+
+  return {
+    success: true,
+    translations: translations.length > 0 ? translations : OFFICIAL_BIBLE_TRANSLATION_FALLBACKS,
+  };
 }
 
 export async function getBookAction(bookSlug: string) {
@@ -3080,23 +3120,17 @@ export async function createVerseLinkExtendedAction(
  * Inclut les traductions officielles et communautaires actives
  */
 export async function getAvailableTranslationsAction() {
-  const { createPublicClient } = await import('@/utils/supabase/server');
-  const supabase = createPublicClient();
+  const officialTranslationsResult = await getOfficialBibleTranslationsAction();
+  const officialTranslations = (officialTranslationsResult.translations || []).map((translation) => ({
+    ...translation,
+    type: 'official',
+  }));
 
-  // Traductions officielles (hardcodées pour bible_verses)
-  const officialTranslations = [
-    { id: 'crampon', name: 'Bible Crampon (1904)', type: 'official' },
-    { id: 'jerusalem', name: 'Bible de Jérusalem (1998)', type: 'official' },
-  ];
-
-  // Traductions communautaires (hardcodées car le RPC ne retourne pas les données correctement)
   const communityTranslations = [
     { id: 'osty', name: 'Bible Osty', type: 'community' },
     { id: 'tob', name: 'Bible Tob', type: 'community' },
-    { id: 'septante', name: 'Septante', type: 'community' },
     { id: 'liturgique', name: 'Traduction Liturgique', type: 'community' },
     { id: 'vulgate', name: 'Vulgate', type: 'community' },
-    { id: 'grec', name: 'Texte Grec', type: 'community' },
     { id: 'hebreu', name: 'Texte Hébreu', type: 'community' },
     { id: 'latin', name: 'Texte Latin', type: 'community' },
   ];

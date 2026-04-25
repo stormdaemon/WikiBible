@@ -17,9 +17,13 @@ interface Book {
 
 interface BiblePageClientProps {
   books: Book[];
+  translations: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
-export function BiblePageClient({ books }: BiblePageClientProps) {
+export function BiblePageClient({ books, translations }: BiblePageClientProps) {
   const [selectedSection, setSelectedSection] = useState<'all' | 'old' | 'psalms' | 'new'>('all');
   const { translation, changeTranslation } = useTranslationPreference();
 
@@ -31,6 +35,11 @@ export function BiblePageClient({ books }: BiblePageClientProps) {
                         selectedSection === 'old' ? oldTestament :
                         selectedSection === 'psalms' ? psalms :
                         newTestament;
+  const selectedTranslation = translations.some((item) => item.id === translation)
+    ? translation
+    : (translations[0]?.id || 'crampon');
+  const chapterHref = (bookSlug: string) =>
+    `/bible/${bookSlug}/1?translation=${encodeURIComponent(selectedTranslation)}`;
 
   return (
     <main className="min-h-screen">
@@ -46,12 +55,15 @@ export function BiblePageClient({ books }: BiblePageClientProps) {
           </label>
           <select
             id="translation-select"
-            value={translation}
-            onChange={(e) => changeTranslation(e.target.value as 'crampon' | 'jerusalem')}
+            value={selectedTranslation}
+            onChange={(e) => changeTranslation(e.target.value)}
             className="px-4 py-2 border border-border rounded-lg bg-background text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
-            <option value="crampon">Bible Crampon</option>
-            <option value="jerusalem">Bible de Jérusalem</option>
+            {translations.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -103,7 +115,7 @@ export function BiblePageClient({ books }: BiblePageClientProps) {
               {oldTestament.map(book => (
                 <Link
                   key={book.id}
-                  href={`/bible/${book.slug}/1`}
+                  href={chapterHref(book.slug)}
                   className="card card--clickable hover:border-accent transition-colors"
                 >
                   <div className="p-4">
@@ -136,7 +148,7 @@ export function BiblePageClient({ books }: BiblePageClientProps) {
               {psalms.map(book => (
                 <Link
                   key={book.id}
-                  href={`/bible/${book.slug}/1`}
+                  href={chapterHref(book.slug)}
                   className="card card--clickable hover:border-accent transition-colors"
                 >
                   <div className="p-4">
@@ -167,7 +179,7 @@ export function BiblePageClient({ books }: BiblePageClientProps) {
               {newTestament.map(book => (
                 <Link
                   key={book.id}
-                  href={`/bible/${book.slug}/1`}
+                  href={chapterHref(book.slug)}
                   className="card card--clickable hover:border-accent transition-colors"
                 >
                   <div className="p-4">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export type Translation = 'crampon' | 'jerusalem';
+export type Translation = string;
 
 export function useTranslationPreference() {
   const [translation, setTranslation] = useState<Translation>('crampon');
@@ -11,8 +11,8 @@ export function useTranslationPreference() {
   // Charger la préférence depuis localStorage au montage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('bibleTranslation') as Translation | null;
-      if (saved === 'crampon' || saved === 'jerusalem') {
+      const saved = localStorage.getItem('bibleTranslation');
+      if (saved) {
         setTranslation(saved);
       }
     } catch (error) {

@@ -195,7 +195,7 @@ export function ChapterContent({
                 chapter={chapter}
                 verseNumber={verse.verse}
                 text={verse.text || '[Traduction manquante]'}
-                translation={isContributive ? currentTranslationName : getTranslationName(verse.translation_id)}
+                translation={isContributive ? (currentTranslationName || verse.translation_id) : getTranslationName(verse.translation_id)}
                 translationId={verse.translation_id}
                 bookId={bookId}
                 isMissing={isMissing}

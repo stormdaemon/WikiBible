@@ -5,6 +5,11 @@ import { useState, useEffect } from 'react';
 import { getChapterAction } from '@/app/actions';
 import { ChapterContent } from './ChapterContent';
 
+interface TranslationOption {
+  id: string;
+  name: string;
+}
+
 interface ChapterContentWrapperProps {
   bookName: string;
   bookId: string;
@@ -13,7 +18,8 @@ interface ChapterContentWrapperProps {
   verses: any[];
   isAuthenticated: boolean;
   currentUserId?: string;
-  initialTranslation: 'crampon' | 'jerusalem';
+  initialTranslation: string;
+  translations: TranslationOption[];
 }
 
 export function ChapterContentWrapper({
@@ -25,6 +31,7 @@ export function ChapterContentWrapper({
   isAuthenticated,
   currentUserId,
   initialTranslation,
+  translations,
 }: ChapterContentWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,63 +39,65 @@ export function ChapterContentWrapper({
   const [displayVerses, setDisplayVerses] = useState(verses);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Charger les versets avec gestion des traductions manquantes
   useEffect(() => {
+    setCurrentTranslation(initialTranslation);
+    setDisplayVerses(verses);
+  }, [initialTranslation, verses]);
+
+  // Charger les versets avec gestion des traductions manquantes.
+  useEffect(() => {
+    let cancelled = false;
+
     const loadVersesWithGaps = async () => {
       setIsLoading(true);
 
+      const result = currentTranslation === initialTranslation
+        ? { success: true, verses }
+        : await getChapterAction(bookSlug, chapter, currentTranslation);
+
+      if (cancelled) return;
+
+      if (!result.success || !result.verses) {
+        setDisplayVerses([]);
+        setIsLoading(false);
+        return;
+      }
+
       if (currentTranslation === 'jerusalem') {
-        // Récupérer les versets Crampon pour comparer
         const cramponResult = await getChapterAction(bookSlug, chapter, 'crampon');
+        if (cancelled) return;
 
         if (cramponResult.success && cramponResult.verses && cramponResult.verses.length > 0) {
-          // Combiner les versets Jérusalem avec les placeholders pour les manquants
           const combinedVerses = cramponResult.verses.map((cramponVerse) => {
-            const jerusalemVerse = verses.find(v => v.verse === cramponVerse.verse);
+            const jerusalemVerse = result.verses.find((v) => v.verse === cramponVerse.verse);
             return jerusalemVerse || {
               ...cramponVerse,
               id: `missing-${cramponVerse.id}`,
-              text: cramponVerse.text, // Utiliser le texte Crampon comme fallback
+              text: cramponVerse.text,
               translation_id: 'jerusalem',
               isMissing: true,
             };
           });
           setDisplayVerses(combinedVerses);
         } else {
-          // Pas de versets Crampon disponibles - afficher Jérusalem directement
-          setDisplayVerses(verses);
+          setDisplayVerses(result.verses);
         }
       } else {
-        // Pour Crampon, vérifier si les versets existent
-        if (verses.length > 0) {
-          setDisplayVerses(verses);
-        } else {
-          // Pas de versets Crampon - essayer de charger Jérusalem comme fallback
-          const jerusalemResult = await getChapterAction(bookSlug, chapter, 'jerusalem');
-          if (jerusalemResult.success && jerusalemResult.verses && jerusalemResult.verses.length > 0) {
-            // Marquer tous les versets comme manquants en Crampon
-            const combinedVerses = jerusalemResult.verses.map((jerusalemVerse) => ({
-              ...jerusalemVerse,
-              id: `missing-${jerusalemVerse.id}`,
-              text: jerusalemVerse.text, // Afficher le texte Jérusalem
-              translation_id: 'crampon',
-              isMissing: true,
-            }));
-            setDisplayVerses(combinedVerses);
-          } else {
-            setDisplayVerses([]);
-          }
-        }
+        setDisplayVerses(result.verses);
       }
+
       setIsLoading(false);
     };
 
     loadVersesWithGaps();
-  }, [currentTranslation, verses, bookSlug, chapter]);
 
-  const handleTranslationChange = (newTranslation: 'crampon' | 'jerusalem') => {
+    return () => {
+      cancelled = true;
+    };
+  }, [currentTranslation, initialTranslation, verses, bookSlug, chapter]);
+
+  const handleTranslationChange = (newTranslation: string) => {
     setCurrentTranslation(newTranslation);
-    // Update URL without full page reload
     const url = `${pathname}?translation=${newTranslation}`;
     router.push(url, { scroll: false });
   };
@@ -103,11 +112,14 @@ export function ChapterContentWrapper({
         <select
           id="chapter-translation-select"
           value={currentTranslation}
-          onChange={(e) => handleTranslationChange(e.target.value as 'crampon' | 'jerusalem')}
+          onChange={(e) => handleTranslationChange(e.target.value)}
           className="px-4 py-2 border border-border rounded-lg bg-background text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
         >
-          <option value="crampon">Bible Crampon</option>
-          <option value="jerusalem">Bible de Jérusalem</option>
+          {translations.map((translation) => (
+            <option key={translation.id} value={translation.id}>
+              {translation.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -126,6 +138,9 @@ export function ChapterContentWrapper({
           verses={displayVerses}
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
+          currentTranslation={currentTranslation}
+          currentTranslationName={translations.find((item) => item.id === currentTranslation)?.name || currentTranslation}
+          translations={translations}
         />
       )}
     </>

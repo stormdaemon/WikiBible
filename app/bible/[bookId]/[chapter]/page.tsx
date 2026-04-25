@@ -3,11 +3,15 @@ import Link from 'next/link';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
 import { VerseAnchorScroll } from '@/components/VerseAnchorScroll';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createPublicClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
 // Note: revalidate est retiré car dynamic='force-dynamic' le rend inutile
 
+interface TranslationOption {
+  id: string;
+  name: string;
+}
 
 export default async function ChapterPage({
   params,
@@ -20,21 +24,52 @@ export default async function ChapterPage({
   const { translation = 'crampon' } = await searchParams;
   const chapter = parseInt(chapterStr);
 
-  // Valider que la traduction est correcte
-  const validTranslation: 'crampon' | 'jerusalem' = (translation === 'jerusalem' || translation === 'crampon')
-    ? translation as 'crampon' | 'jerusalem'
-    : 'crampon';
+  const bookResult = await getBookAction(bookId);
 
-  const [bookResult, chapterResult] = await Promise.all([
-    getBookAction(bookId),
-    getChapterAction(bookId, chapter, validTranslation),
-  ]);
-
-  if (!bookResult.success || !chapterResult.success || !bookResult.book || !chapterResult.verses) {
+  if (!bookResult.success || !bookResult.book) {
     return <div className="text-center py-12 text-danger">Chapitre non trouvé</div>;
   }
 
   const book = bookResult.book;
+  const publicSupabase = createPublicClient();
+  const { data: activeTranslations } = await publicSupabase
+    .from('bible_translations')
+    .select('slug, name')
+    .eq('is_active', true)
+    .eq('type', 'official')
+    .order('created_at', { ascending: true });
+
+  const activeOfficialTranslations = (activeTranslations || []).map((item) => ({
+    id: item.slug,
+    name: item.name,
+  }));
+  const activeTranslationIds = activeOfficialTranslations.map((item) => item.id);
+  const { data: chapterTranslationRows } = activeTranslationIds.length > 0
+    ? await publicSupabase
+      .from('bible_verses')
+      .select('translation_id')
+      .eq('book_id', book.id)
+      .eq('chapter', chapter)
+      .in('translation_id', activeTranslationIds)
+    : { data: [] };
+
+  const chapterTranslationIds = new Set((chapterTranslationRows || []).map((row) => row.translation_id));
+  const translations: TranslationOption[] = activeOfficialTranslations.filter((item) =>
+    chapterTranslationIds.has(item.id)
+  );
+  const fallbackTranslation = translations.find((item) => item.id === 'crampon')?.id
+    || translations[0]?.id
+    || 'crampon';
+  const validTranslation = translations.some((item) => item.id === translation)
+    ? translation
+    : fallbackTranslation;
+
+  const chapterResult = await getChapterAction(bookId, chapter, validTranslation);
+
+  if (!chapterResult.success || !chapterResult.verses) {
+    return <div className="text-center py-12 text-danger">Chapitre non trouvé</div>;
+  }
+
   const verses = chapterResult.verses;
 
   // Vérifier l'authentification
@@ -112,6 +147,7 @@ export default async function ChapterPage({
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
           initialTranslation={validTranslation}
+          translations={translations.length > 0 ? translations : [{ id: validTranslation, name: validTranslation }]}
         />
 
         {/* Chapter Navigation */}

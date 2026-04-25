@@ -13,10 +13,8 @@ const COMMUNITY_TRANSLATIONS = [
   { id: 'liturgique', name: 'Traduction Liturgique' },
   { id: 'tob', name: 'Bible Tob' },
   { id: 'vulgate', name: 'Vulgate' },
-  { id: 'septante', name: 'Septante' },
   { id: 'hebreu', name: 'Texte Hébreu' },
   { id: 'latin', name: 'Texte Latin' },
-  { id: 'grec', name: 'Texte Grec' },
 ] as const;
 
 export default async function ContributiveChapterPage({

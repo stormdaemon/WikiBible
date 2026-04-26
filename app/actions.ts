@@ -355,6 +355,7 @@ const OFFICIAL_BIBLE_TRANSLATION_FALLBACKS: BibleTranslationOption[] = [
   { id: 'jerusalem', name: 'Bible Jérusalem' },
   { id: 'septante', name: 'Bible Septante' },
   { id: 'grec', name: 'Bible Septante Grec' },
+  { id: 'vulgate', name: 'Bible Vulgate' },
 ];
 
 export async function getBooksAction() {
@@ -3130,7 +3131,6 @@ export async function getAvailableTranslationsAction() {
     { id: 'osty', name: 'Bible Osty', type: 'community' },
     { id: 'tob', name: 'Bible Tob', type: 'community' },
     { id: 'liturgique', name: 'Traduction Liturgique', type: 'community' },
-    { id: 'vulgate', name: 'Vulgate', type: 'community' },
     { id: 'hebreu', name: 'Texte Hébreu', type: 'community' },
     { id: 'latin', name: 'Texte Latin', type: 'community' },
   ];

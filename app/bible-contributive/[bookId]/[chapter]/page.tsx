@@ -12,7 +12,6 @@ const COMMUNITY_TRANSLATIONS = [
   { id: 'osty', name: 'Bible Osty' },
   { id: 'liturgique', name: 'Traduction Liturgique' },
   { id: 'tob', name: 'Bible Tob' },
-  { id: 'vulgate', name: 'Vulgate' },
   { id: 'hebreu', name: 'Texte Hébreu' },
   { id: 'latin', name: 'Texte Latin' },
 ] as const;

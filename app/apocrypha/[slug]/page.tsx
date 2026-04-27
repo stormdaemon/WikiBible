@@ -1,12 +1,71 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
+import { createPublicClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ApocryphaContent } from '@/components/ApocryphaContent';
+import { DEFAULT_OG_IMAGE, JsonLd, absoluteUrl, breadcrumbJsonLd, truncateDescription } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 interface ApocryphaBookPageProps {
   params: Promise<{ slug: string }>;
+}
+
+async function getApocryphaBook(slug: string) {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from('apocryphal_books')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  return data;
+}
+
+export async function generateMetadata({ params }: ApocryphaBookPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const book = await getApocryphaBook(slug);
+
+  if (!book) {
+    return {
+      title: 'Texte apocryphe non trouvé',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const description = truncateDescription(
+    book.description_fr || `Lire ${book.name_fr}, texte apocryphe de la tradition chrétienne, sur WikiBible.`
+  );
+  const canonical = `/apocrypha/${slug}`;
+
+  return {
+    title: `${book.name_fr} - Textes apocryphes`,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: `${book.name_fr} | WikiBible`,
+      description,
+      url: absoluteUrl(canonical),
+      type: 'article',
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: `${book.name_fr} - WikiBible`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${book.name_fr} - Textes apocryphes`,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
 }
 
 export default async function ApocryphaBookPage({ params }: ApocryphaBookPageProps) {
@@ -45,6 +104,13 @@ export default async function ApocryphaBookPage({ params }: ApocryphaBookPagePro
 
   return (
     <main className="min-h-screen">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Accueil', url: '/' },
+          { name: 'Apocryphes', url: '/apocrypha' },
+          { name: book.name_fr, url: `/apocrypha/${slug}` },
+        ])}
+      />
       {/* Header */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Breadcrumb */}

@@ -1,5 +1,22 @@
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  title: 'WikiBible - Bible Catholique et Encyclopédie Catholique',
+  description: 'WikiBible réunit la Bible catholique complète, les textes apocryphes et une encyclopédie catholique collaborative.',
+  alternates: {
+    canonical: absoluteUrl('/'),
+  },
+  openGraph: {
+    title: 'WikiBible - Bible Catholique et Encyclopédie Catholique',
+    description: 'Lire la Bible catholique et explorer une encyclopédie catholique collaborative.',
+    url: absoluteUrl('/'),
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default function HomePage() {
   return (
@@ -174,10 +191,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://lebaptemecatholique.fr/assets/heavenradio.png"
                   alt="Heaven Radio"
-                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -212,10 +231,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://lebaptemecatholique.fr/assets/missioncatho.png"
                   alt="La Mission Catholique"
-                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -250,10 +271,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://res.cloudinary.com/da52mpv3g/image/upload/c_limit,w_256/f_auto/q_auto/v1/institut-apologetique/ultreia-png?_a=BAVC1WAQ0"
                   alt="Ultreia Event"
-                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -288,10 +311,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://res.cloudinary.com/da52mpv3g/image/upload/c_limit,w_256/f_auto/q_auto/v1/institut-apologetique/soscatho-png?_a=BAVC1WAQ0"
                   alt="SOS Chrétiens d'Occident"
-                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -326,10 +351,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1767791238/institut_irenee_nyjpn1.png"
                   alt="Institut Irénée"
-                  className="object-contain h-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -364,10 +391,12 @@ export default function HomePage() {
               className="group bg-white rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-lg transition-all duration-200"
             >
               <div className="relative h-24 mb-4 flex items-center justify-center">
-                <img
+                <Image
                   src="https://i.ibb.co/Tqx5GwLS/hgyt.png"
                   alt="Ressources catholiques"
-                  className="object-contain h-full rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                  className="object-contain rounded-full grayscale group-hover:grayscale-0 transition-all duration-200"
                 />
               </div>
               <div className="text-center">
@@ -412,22 +441,26 @@ export default function HomePage() {
             <h3 className="text-lg font-serif font-bold text-primary mb-6 text-center">Direction ecclésiastique</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               <div className="bg-white rounded-xl p-6 border border-border text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
-                  <img
+                <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
+                  <Image
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069963/WhatsApp_Image_2026-02-14_at_12.51.09_o5ajqh.jpg"
                     alt="Mgr Dominique Rey"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="96px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm">Mgr Dominique Rey</h4>
                 <p className="text-xs text-accent font-medium mt-1">Évêque accompagnateur</p>
               </div>
               <div className="bg-white rounded-xl p-6 border border-border text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
-                  <img
+                <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-accent">
+                  <Image
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771071014/WhatsApp_Image_2026-02-14_at_12.52.30_mzmuv7.jpg"
                     alt="Père Daniel Doré"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="96px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm">Père Daniel Doré</h4>
@@ -447,11 +480,13 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group text-center"
               >
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
-                  <img
+                <div className="relative w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <Image
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069904/1358f1e382280eb3bd555a592cebade8_tplv-tiktokx-cropcenter_1080_1080_qj0tos.jpg"
                     alt="Flot"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Flot</h4>
@@ -465,11 +500,13 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group text-center"
               >
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
-                  <img
+                <div className="relative w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <Image
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771186012/ChatGPT_Image_15_f%C3%A9vr._2026_21_07_08_kf6s5i.png"
                     alt="Biblion"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Biblion</h4>
@@ -483,11 +520,13 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group text-center"
               >
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
-                  <img
+                <div className="relative w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <Image
                     src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069744/6a4b6cd112120c1eaf067fd0b5ea76a2_tplv-tiktokx-cropcenter_1080_1080_vvpgoz.jpg"
                     alt="Sam"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Sam</h4>
@@ -501,11 +540,13 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group text-center"
               >
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
-                  <img
+                <div className="relative w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
+                  <Image
                     src="/partners/bible-en-main.png"
                     alt="Bible en main"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
                   />
                 </div>
                 <h4 className="font-bold text-primary text-sm group-hover:text-accent transition-colors">Bible en main</h4>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getBookAction, getChapterAction } from '@/app/actions';
 import Link from 'next/link';
 import { ChapterContentContributiveWrapper } from '@/components/ChapterContentContributiveWrapper';
@@ -7,6 +8,14 @@ import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'Bible Contributive',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 const COMMUNITY_TRANSLATIONS = [
   { id: 'osty', name: 'Bible Osty' },

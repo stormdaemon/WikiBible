@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { getBookAction, getChapterAction, getOfficialBibleTranslationsAction } from '@/app/actions';
 import Link from 'next/link';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
 import { VerseAnchorScroll } from '@/components/VerseAnchorScroll';
 import { createClient, createPublicClient } from '@/utils/supabase/server';
+import { DEFAULT_OG_IMAGE, JsonLd, absoluteUrl, breadcrumbJsonLd } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 // Note: revalidate est retiré car dynamic='force-dynamic' le rend inutile
@@ -11,6 +13,56 @@ export const dynamic = 'force-dynamic';
 interface TranslationOption {
   id: string;
   name: string;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ bookId: string; chapter: string }>;
+}): Promise<Metadata> {
+  const { bookId, chapter: chapterStr } = await params;
+  const chapter = parseInt(chapterStr);
+  const bookResult = await getBookAction(bookId);
+
+  if (!bookResult.success || !bookResult.book) {
+    return {
+      title: 'Chapitre non trouvé',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const book = bookResult.book;
+  const title = `${book.name} ${chapter} - Bible Catholique`;
+  const description = `Lire ${book.name} chapitre ${chapter} dans la Bible catholique sur WikiBible, avec les traductions officielles disponibles.`;
+  const canonical = `/bible/${bookId}/${chapter}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: `${title} | WikiBible`,
+      description,
+      url: absoluteUrl(canonical),
+      type: 'article',
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: `${book.name} ${chapter} - WikiBible`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
 }
 
 export default async function ChapterPage({
@@ -71,6 +123,29 @@ export default async function ChapterPage({
 
   return (
     <main className="min-h-screen">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: 'Accueil', url: '/' },
+            { name: 'Bible', url: '/bible' },
+            { name: book.name, url: `/bible/${bookId}/1` },
+            { name: `Chapitre ${chapter}`, url: `/bible/${bookId}/${chapter}` },
+          ]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CreativeWork',
+            name: `${book.name} ${chapter}`,
+            headline: `${book.name} - Chapitre ${chapter}`,
+            description: `Chapitre ${chapter} du livre ${book.name} dans la Bible catholique.`,
+            isPartOf: {
+              '@type': 'Book',
+              name: 'Bible catholique',
+            },
+            url: absoluteUrl(`/bible/${bookId}/${chapter}`),
+            inLanguage: 'fr',
+          },
+        ]}
+      />
       {/* Gestion du scroll vers l'ancre de verset */}
       <VerseAnchorScroll />
 

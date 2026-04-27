@@ -1,7 +1,17 @@
+import type { Metadata } from 'next';
 import { getBooksAction } from '@/app/actions';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'Bible Contributive',
+  description: 'Espace de contribution pour compléter les traductions communautaires de WikiBible.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function BibleContributivePage() {
   const result = await getBooksAction();

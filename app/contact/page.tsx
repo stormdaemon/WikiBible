@@ -1,7 +1,23 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ContactForm } from '@/components/contact-form';
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  title: 'Contact',
+  description: 'Contacter l’équipe WikiBible pour une question, une suggestion ou un signalement.',
+  alternates: {
+    canonical: absoluteUrl('/contact'),
+  },
+  openGraph: {
+    title: 'Contact | WikiBible',
+    description: 'Contacter l’équipe WikiBible pour une question, une suggestion ou un signalement.',
+    url: absoluteUrl('/contact'),
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default async function ContactPage() {
   const supabase = await createClient();

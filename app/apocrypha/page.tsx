@@ -1,9 +1,25 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
 import Link from 'next/link';
 import { ApocryphaGrid } from '@/components/ApocryphaGrid';
 import { ApocryphaFilter } from '@/components/ApocryphaFilter';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Textes Apocryphes',
+  description: 'Explorer les textes apocryphes et deutérocanoniques disponibles sur WikiBible, classés par livre et par chapitre.',
+  alternates: {
+    canonical: absoluteUrl('/apocrypha'),
+  },
+  openGraph: {
+    title: 'Textes Apocryphes | WikiBible',
+    description: 'Textes apocryphes et deutérocanoniques disponibles sur WikiBible.',
+    url: absoluteUrl('/apocrypha'),
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default async function ApocryphaPage() {
   const supabase = await createClient();

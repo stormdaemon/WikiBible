@@ -1,9 +1,25 @@
+import type { Metadata } from 'next';
 import { getRecentArticlesAction } from '@/app/actions';
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
 import Link from 'next/link';
 
 // Configuration pour forcer le rendu dynamique (pas de cache)
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Wiki Catholique',
+  description: 'Explorer les articles publiés de WikiBible sur la foi catholique, la Bible, la tradition et la théologie.',
+  alternates: {
+    canonical: absoluteUrl('/wiki'),
+  },
+  openGraph: {
+    title: 'Wiki Catholique | WikiBible',
+    description: 'Articles publiés de WikiBible sur la foi catholique, la Bible, la tradition et la théologie.',
+    url: absoluteUrl('/wiki'),
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default async function WikiPage() {
   const result = await getRecentArticlesAction(20);

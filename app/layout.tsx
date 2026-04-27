@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
+import { DEFAULT_OG_IMAGE, JsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,11 +17,8 @@ const libreBaskerville = Libre_Baskerville({
   style: ["normal", "italic"],
 });
 
-const siteUrl = "https://wikibible.fr";
-const ogImage = "https://res.cloudinary.com/dgjsq5fnl/image/upload/v1769107139/wikibible_logo_qikkaj.jpg";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "WikiBible - La Bible Catholique (73 Livres)",
     template: "%s | WikiBible",
@@ -33,10 +31,10 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: ogImage, type: "image/jpeg" },
+      { url: DEFAULT_OG_IMAGE, type: "image/jpeg" },
     ],
     apple: [
-      { url: ogImage },
+      { url: DEFAULT_OG_IMAGE },
     ],
   },
 
@@ -44,14 +42,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: siteUrl,
-    siteName: "WikiBible",
+    url: SITE_URL,
+    siteName: SITE_NAME,
     title: "WikiBible - La Bible Catholique (73 Livres)",
     description: "Encyclopédie biblique catholique complète avec le canon de 73 livres. Explorez les Écritures, contribuez et partagez la foi.",
     images: [
       {
-        url: ogImage,
-        secureUrl: ogImage,
+        url: DEFAULT_OG_IMAGE,
+        secureUrl: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "WikiBible - Encyclopédie biblique catholique",
@@ -67,7 +65,7 @@ export const metadata: Metadata = {
     creator: "@WikiBible",
     title: "WikiBible - La Bible Catholique (73 Livres)",
     description: "Encyclopédie biblique catholique complète avec le canon de 73 livres.",
-    images: [ogImage],
+    images: [DEFAULT_OG_IMAGE],
   },
 
   // Apple/iMessage
@@ -79,9 +77,9 @@ export const metadata: Metadata = {
 
   // Autres métadonnées pour compatibilité maximale
   other: {
-    "msapplication-TileImage": ogImage,
-    "og:image:url": ogImage,
-    "og:image:secure_url": ogImage,
+    "msapplication-TileImage": DEFAULT_OG_IMAGE,
+    "og:image:url": DEFAULT_OG_IMAGE,
+    "og:image:secure_url": DEFAULT_OG_IMAGE,
   },
 
   // Robots
@@ -118,6 +116,31 @@ export default async function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${libreBaskerville.variable}`}>
       <body className="antialiased min-h-screen flex flex-col">
+        <JsonLd
+          data={[
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: SITE_NAME,
+              url: SITE_URL,
+              logo: DEFAULT_OG_IMAGE,
+              sameAs: [
+                'https://wikibible.fr',
+              ],
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: SITE_NAME,
+              url: SITE_URL,
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: `${SITE_URL}/wiki?search={search_term_string}`,
+                'query-input': 'required name=search_term_string',
+              },
+            },
+          ]}
+        />
         <RadioPlayer />
         <Header user={user} />
         {children}

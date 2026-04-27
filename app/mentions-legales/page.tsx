@@ -1,4 +1,20 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  title: 'Mentions Légales',
+  description: 'Mentions légales, hébergement, propriété intellectuelle et protection des données personnelles de WikiBible.',
+  alternates: {
+    canonical: absoluteUrl('/mentions-legales'),
+  },
+  openGraph: {
+    title: 'Mentions Légales | WikiBible',
+    description: 'Mentions légales et informations réglementaires de WikiBible.',
+    url: absoluteUrl('/mentions-legales'),
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default function MentionsLegalesPage() {
   return (

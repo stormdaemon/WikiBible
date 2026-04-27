@@ -1,14 +1,75 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
+import { createPublicClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
 import { ApocryphaVerseClientWrapper } from '@/components/ApocryphaVerseClientWrapper';
 import { VerseAnchorScroll } from '@/components/VerseAnchorScroll';
+import { DEFAULT_OG_IMAGE, JsonLd, absoluteUrl, breadcrumbJsonLd, truncateDescription } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 interface ApocryphaChapterPageProps {
   params: Promise<{ slug: string; chapter: string }>;
+}
+
+async function getApocryphaBook(slug: string) {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from('apocryphal_books')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  return data;
+}
+
+export async function generateMetadata({ params }: ApocryphaChapterPageProps): Promise<Metadata> {
+  const { slug, chapter: chapterStr } = await params;
+  const chapter = parseInt(chapterStr);
+  const book = await getApocryphaBook(slug);
+
+  if (!book) {
+    return {
+      title: 'Chapitre apocryphe non trouvé',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = `${book.name_fr} ${chapter} - Textes apocryphes`;
+  const description = truncateDescription(
+    book.description_fr || `Lire ${book.name_fr} chapitre ${chapter} sur WikiBible.`
+  );
+  const canonical = `/apocrypha/${slug}/${chapter}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: `${title} | WikiBible`,
+      description,
+      url: absoluteUrl(canonical),
+      type: 'article',
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: `${book.name_fr} ${chapter} - WikiBible`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
 }
 
 export default async function ApocryphaChapterPage({ params }: ApocryphaChapterPageProps) {
@@ -45,6 +106,14 @@ export default async function ApocryphaChapterPage({ params }: ApocryphaChapterP
 
   return (
     <main className="min-h-screen">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Accueil', url: '/' },
+          { name: 'Apocryphes', url: '/apocrypha' },
+          { name: book.name_fr, url: `/apocrypha/${slug}` },
+          { name: `Chapitre ${chapter}`, url: `/apocrypha/${slug}/${chapter}` },
+        ])}
+      />
       {/* Gestion du scroll vers l'ancre de verset */}
       <VerseAnchorScroll />
 

@@ -503,7 +503,7 @@ export default function HomePage() {
               >
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-border group-hover:border-accent transition-colors">
                   <img
-                    src="https://res.cloudinary.com/dgjsq5fnl/image/upload/v1771069387/4c43aadfeef40ede00d15910b987b085_tplv-tiktokx-cropcenter_1080_1080_akgqgq.jpg"
+                    src="/partners/bible-en-main.png"
                     alt="Bible en main"
                     className="w-full h-full object-cover"
                   />

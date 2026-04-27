@@ -17,7 +17,8 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 const siteUrl = "https://wikibible.fr";
-const ogImage = "https://res.cloudinary.com/dgjsq5fnl/image/upload/v1769107139/wikibible_logo_qikkaj.jpg";
+const ogImage = "/og-image.jpg";
+const siteIcon = "/site-icon.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -33,10 +34,11 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: ogImage, type: "image/jpeg" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: siteIcon, type: "image/png", sizes: "512x512" },
     ],
     apple: [
-      { url: ogImage },
+      { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },
     ],
   },
 

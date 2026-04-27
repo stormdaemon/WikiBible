@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getBooksAction, getApocryphalBooksAction } from '@/app/actions';
+import { getBooksAction, getApocryphalBooksAction, getVerseNumbersAction } from '@/app/actions';
 
 export type VerseSourceType = 'bible' | 'contributive' | 'apocryphal';
 
@@ -64,20 +64,19 @@ export function UniversalVerseSelector({
   useEffect(() => {
     if (selectedBookId && selectedChapter > 0) {
       const loadVerses = async () => {
-        const book = books.find(b => b.id === selectedBookId);
-        if (book) {
-          // Simuler les versets (1 à max_versets_chapitre)
-          const maxVerses = book.chapters || 150;
-          const verseList = Array.from({ length: maxVerses }, (_, i) => ({
-            number: i + 1,
-            id: `${selectedBookId}-${selectedChapter}-${i + 1}`
-          }));
-          setVerses(verseList);
+        const result = await getVerseNumbersAction(selectedBookId, selectedChapter, sourceType);
+        if (result.success && result.verses) {
+          setVerses(result.verses.map((number: number) => ({
+            number,
+            id: `${selectedBookId}-${selectedChapter}-${number}`
+          })));
+        } else {
+          setVerses([]);
         }
       };
       loadVerses();
     }
-  }, [selectedBookId, selectedChapter, books]);
+  }, [selectedBookId, selectedChapter, sourceType]);
 
   const currentBook = books.find(b => b.id === selectedBookId);
 

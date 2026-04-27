@@ -373,6 +373,40 @@ export async function getBooksAction() {
   return { success: true, books: data };
 }
 
+export async function getVerseNumbersAction(
+  bookId: string,
+  chapter: number,
+  sourceType: 'bible' | 'contributive' | 'apocryphal' = 'bible'
+) {
+  const VerseNumbersSchema = z.object({
+    bookId: z.string().uuid(),
+    chapter: z.coerce.number().int().positive(),
+    sourceType: z.enum(['bible', 'contributive', 'apocryphal']),
+  });
+
+  const parsed = VerseNumbersSchema.safeParse({ bookId, chapter, sourceType });
+  if (!parsed.success) {
+    return { error: 'Sélection de verset invalide', verses: [] };
+  }
+
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc('get_verse_numbers', {
+    p_book_id: parsed.data.bookId,
+    p_chapter: parsed.data.chapter,
+    p_source_type: parsed.data.sourceType,
+  });
+
+  if (error) {
+    return { error: error.message, verses: [] };
+  }
+
+  return {
+    success: true,
+    verses: (data || []).map((row) => row.verse_number),
+  };
+}
+
 export async function getOfficialBibleTranslationsAction(): Promise<{
   success: boolean;
   translations?: BibleTranslationOption[];
@@ -599,12 +633,13 @@ const CreateExternalSourceSchema = z.object({
   source_type: data.source_type,
   reference: data.reference || null,
   content: data.content || data.description || '',
+  description: data.description || data.content || null,
 }));
 
 const LinkExternalSourceSchema = z.object({
   verse_id: z.string().uuid(),
   external_source_id: z.string().uuid(),
-  link_type: z.enum(['citation', 'commentary', 'reference']).optional(),
+  link_type: z.enum(['citation', 'commentary', 'reference', 'external']).optional(),
 });
 
 /**
@@ -1056,6 +1091,7 @@ export async function createExternalSourceAction(
     source_type: formData.get('source_type'),
     reference: formData.get('reference'),
     content: formData.get('content'),
+    description: formData.get('description'),
   });
 
   if (!validatedFields.success) {

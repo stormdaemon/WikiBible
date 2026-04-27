@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getBooksAction } from '@/app/actions';
+import { getBooksAction, getVerseNumbersAction } from '@/app/actions';
 
 interface VerseSelectorProps {
   onVerseSelected: (bookId: string, bookName: string, chapter: number, verse: number, translation?: string) => void;
@@ -46,20 +46,19 @@ export function VerseSelector({ onVerseSelected, selectedBook, initialTranslatio
   useEffect(() => {
     if (selectedBookId && selectedChapter > 0) {
       const loadVerses = async () => {
-        const book = books.find(b => b.id === selectedBookId);
-        if (book) {
-          // Simuler les versets (1 à max_versets_chapitre)
-          const maxVerses = 150; // Valeur sûre, à ajuster selon DB
-          const verseList = Array.from({ length: maxVerses }, (_, i) => ({
-            number: i + 1,
-            id: `${selectedBookId}-${selectedChapter}-${i + 1}`
-          }));
-          setVerses(verseList);
+        const result = await getVerseNumbersAction(selectedBookId, selectedChapter, 'bible');
+        if (result.success && result.verses) {
+          setVerses(result.verses.map((number: number) => ({
+            number,
+            id: `${selectedBookId}-${selectedChapter}-${number}`
+          })));
+        } else {
+          setVerses([]);
         }
       };
       loadVerses();
     }
-  }, [selectedBookId, selectedChapter, books]);
+  }, [selectedBookId, selectedChapter]);
 
   const currentBook = books.find(b => b.id === selectedBookId);
 

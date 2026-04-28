@@ -8,6 +8,7 @@ import { ChapterContent } from './ChapterContent';
 interface TranslationOption {
   id: string;
   name: string;
+  disabled?: boolean;
 }
 
 interface ChapterContentWrapperProps {
@@ -116,7 +117,7 @@ export function ChapterContentWrapper({
           className="px-4 py-2 border border-border rounded-lg bg-background text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
         >
           {translations.map((translation) => (
-            <option key={translation.id} value={translation.id}>
+            <option key={translation.id} value={translation.id} disabled={translation.disabled}>
               {translation.name}
             </option>
           ))}

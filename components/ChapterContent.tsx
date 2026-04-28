@@ -24,7 +24,7 @@ interface ChapterContentProps {
   isContributive?: boolean;
   currentTranslation?: string;
   currentTranslationName?: string;
-  translations?: { id: string; name: string; }[];
+  translations?: { id: string; name: string; disabled?: boolean; }[];
   onVerseAdded?: () => void;
 }
 

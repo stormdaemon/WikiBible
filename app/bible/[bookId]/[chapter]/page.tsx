@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 interface TranslationOption {
   id: string;
   name: string;
+  disabled?: boolean;
 }
 
 export async function generateMetadata({
@@ -85,8 +86,8 @@ export default async function ChapterPage({
   const book = bookResult.book;
   const publicSupabase = createPublicClient();
   const translationsResult = await getOfficialBibleTranslationsAction();
-  const activeOfficialTranslations = translationsResult.translations || [];
-  const activeTranslationIds = activeOfficialTranslations.map((item) => item.id);
+  const officialTranslations = translationsResult.translations || [];
+  const activeTranslationIds = officialTranslations.map((item) => item.id);
   const { data: chapterTranslationRows } = activeTranslationIds.length > 0
     ? await publicSupabase
       .from('bible_verses')
@@ -97,13 +98,15 @@ export default async function ChapterPage({
     : { data: [] };
 
   const chapterTranslationIds = new Set((chapterTranslationRows || []).map((row) => row.translation_id));
-  const translations: TranslationOption[] = activeOfficialTranslations.filter((item) =>
-    chapterTranslationIds.has(item.id)
-  );
-  const fallbackTranslation = translations.find((item) => item.id === 'crampon')?.id
-    || translations[0]?.id
+  const translations: TranslationOption[] = officialTranslations.map((item) => ({
+    ...item,
+    disabled: !chapterTranslationIds.has(item.id),
+  }));
+  const availableTranslations = translations.filter((item) => !item.disabled);
+  const fallbackTranslation = availableTranslations.find((item) => item.id === 'crampon')?.id
+    || availableTranslations[0]?.id
     || 'crampon';
-  const validTranslation = translations.some((item) => item.id === translation)
+  const validTranslation = availableTranslations.some((item) => item.id === translation)
     ? translation
     : fallbackTranslation;
 

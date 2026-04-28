@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslationPreference } from '@/hooks/useTranslationPreference';
 
@@ -21,11 +21,12 @@ interface BiblePageClientProps {
     id: string;
     name: string;
   }>;
+  initialTranslation?: string;
 }
 
-export function BiblePageClient({ books, translations }: BiblePageClientProps) {
+export function BiblePageClient({ books, translations, initialTranslation }: BiblePageClientProps) {
   const [selectedSection, setSelectedSection] = useState<'all' | 'old' | 'psalms' | 'new'>('all');
-  const { translation, changeTranslation } = useTranslationPreference();
+  const { translation, changeTranslation, isLoaded } = useTranslationPreference();
 
   const oldTestament = books.filter(book => book.testament === 'old');
   const psalms = books.filter(book => book.position === 23);
@@ -35,8 +36,21 @@ export function BiblePageClient({ books, translations }: BiblePageClientProps) {
                         selectedSection === 'old' ? oldTestament :
                         selectedSection === 'psalms' ? psalms :
                         newTestament;
+  useEffect(() => {
+    if (
+      isLoaded &&
+      initialTranslation &&
+      translations.some((item) => item.id === initialTranslation) &&
+      translation !== initialTranslation
+    ) {
+      changeTranslation(initialTranslation);
+    }
+  }, [changeTranslation, initialTranslation, isLoaded, translation, translations]);
+
   const selectedTranslation = translations.some((item) => item.id === translation)
     ? translation
+    : initialTranslation && translations.some((item) => item.id === initialTranslation)
+      ? initialTranslation
     : (translations[0]?.id || 'crampon');
   const chapterHref = (bookSlug: string) =>
     `/bible/${bookSlug}/1?translation=${encodeURIComponent(selectedTranslation)}`;

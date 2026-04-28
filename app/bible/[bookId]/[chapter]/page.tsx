@@ -109,6 +109,8 @@ export default async function ChapterPage({
   const validTranslation = availableTranslations.some((item) => item.id === translation)
     ? translation
     : fallbackTranslation;
+  const currentTranslationName = translations.find((item) => item.id === validTranslation)?.name || validTranslation;
+  const encodedTranslation = encodeURIComponent(validTranslation);
 
   const chapterResult = await getChapterAction(bookId, chapter, validTranslation);
 
@@ -131,7 +133,8 @@ export default async function ChapterPage({
           breadcrumbJsonLd([
             { name: 'Accueil', url: '/' },
             { name: 'Bible', url: '/bible' },
-            { name: book.name, url: `/bible/${bookId}/1` },
+            { name: currentTranslationName, url: `/bible?translation=${encodedTranslation}` },
+            { name: book.name, url: `/bible/${bookId}/1?translation=${encodedTranslation}` },
             { name: `Chapitre ${chapter}`, url: `/bible/${bookId}/${chapter}` },
           ]),
           {
@@ -156,10 +159,20 @@ export default async function ChapterPage({
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <ol className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <li><Link href="/bible" className="text-secondary hover:text-primary">Bible</Link></li>
             <li><span className="text-slate-300">/</span></li>
-            <li><span className="text-accent font-medium">{book.name}</span></li>
+            <li>
+              <Link href={`/bible?translation=${encodedTranslation}`} className="text-secondary hover:text-primary">
+                {currentTranslationName}
+              </Link>
+            </li>
+            <li><span className="text-slate-300">/</span></li>
+            <li>
+              <Link href={`/bible/${bookId}/1?translation=${encodedTranslation}`} className="text-accent font-medium hover:text-primary">
+                {book.name}
+              </Link>
+            </li>
             <li><span className="text-slate-300">/</span></li>
             <li><span className="text-primary">Chapitre {chapter}</span></li>
           </ol>
@@ -216,6 +229,7 @@ export default async function ChapterPage({
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
           initialTranslation={validTranslation}
+          initialTranslationName={currentTranslationName}
           translations={translations.length > 0 ? translations : [{ id: validTranslation, name: validTranslation }]}
         />
 

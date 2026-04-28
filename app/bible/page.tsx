@@ -20,7 +20,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BiblePage() {
+export default async function BiblePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ translation?: string }>;
+}) {
+  const { translation } = await searchParams;
   const [result, translationsResult] = await Promise.all([
     getBooksAction(),
     getOfficialBibleTranslationsAction(),
@@ -31,6 +36,7 @@ export default async function BiblePage() {
   }
 
   const translations = translationsResult.translations || [];
+  const initialTranslation = translations.some((item) => item.id === translation) ? translation : undefined;
 
-  return <BiblePageClient books={result.books} translations={translations} />;
+  return <BiblePageClient books={result.books} translations={translations} initialTranslation={initialTranslation} />;
 }

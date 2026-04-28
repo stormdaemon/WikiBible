@@ -20,6 +20,7 @@ interface ChapterContentWrapperProps {
   isAuthenticated: boolean;
   currentUserId?: string;
   initialTranslation: string;
+  initialTranslationName: string;
   translations: TranslationOption[];
 }
 
@@ -32,6 +33,7 @@ export function ChapterContentWrapper({
   isAuthenticated,
   currentUserId,
   initialTranslation,
+  initialTranslationName,
   translations,
 }: ChapterContentWrapperProps) {
   const router = useRouter();
@@ -103,6 +105,8 @@ export function ChapterContentWrapper({
     router.push(url, { scroll: false });
   };
 
+  const currentTranslationName = translations.find((item) => item.id === currentTranslation)?.name || initialTranslationName || currentTranslation;
+
   return (
     <>
       {/* Translation Selector */}
@@ -140,7 +144,7 @@ export function ChapterContentWrapper({
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
           currentTranslation={currentTranslation}
-          currentTranslationName={translations.find((item) => item.id === currentTranslation)?.name || currentTranslation}
+          currentTranslationName={currentTranslationName}
           translations={translations}
         />
       )}

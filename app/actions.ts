@@ -375,6 +375,25 @@ export async function getBooksAction() {
   return { success: true, books: data };
 }
 
+export async function getBooksForTranslationAction(translationId: string = 'crampon') {
+  const TranslationSchema = z.string().regex(/^[a-z0-9-]+$/).default('crampon');
+  const parsed = TranslationSchema.safeParse(translationId || 'crampon');
+  const safeTranslationId = parsed.success ? parsed.data : 'crampon';
+
+  const { createPublicClient } = await import('@/utils/supabase/server');
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc('get_bible_books_for_translation', {
+    p_translation_id: safeTranslationId,
+  });
+
+  if (error) {
+    const fallback = await getBooksAction();
+    return { ...fallback, error: error.message };
+  }
+
+  return { success: true, books: data };
+}
+
 export async function getVerseNumbersAction(
   bookId: string,
   chapter: number,

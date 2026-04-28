@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getBooksForTranslationAction } from '@/app/actions';
 import { useTranslationPreference } from '@/hooks/useTranslationPreference';
 
 interface Book {
@@ -26,16 +28,11 @@ interface BiblePageClientProps {
 
 export function BiblePageClient({ books, translations, initialTranslation }: BiblePageClientProps) {
   const [selectedSection, setSelectedSection] = useState<'all' | 'old' | 'psalms' | 'new'>('all');
+  const [availableBooks, setAvailableBooks] = useState(books);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const { translation, changeTranslation, isLoaded } = useTranslationPreference();
 
-  const oldTestament = books.filter(book => book.testament === 'old');
-  const psalms = books.filter(book => book.position === 23);
-  const newTestament = books.filter(book => book.testament === 'new');
-
-  const displayedBooks = selectedSection === 'all' ? books :
-                        selectedSection === 'old' ? oldTestament :
-                        selectedSection === 'psalms' ? psalms :
-                        newTestament;
   useEffect(() => {
     if (
       isLoaded &&
@@ -47,13 +44,48 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
     }
   }, [changeTranslation, initialTranslation, isLoaded, translation, translations]);
 
-  const selectedTranslation = translations.some((item) => item.id === translation)
+  const selectedTranslation = useMemo(() => translations.some((item) => item.id === translation)
     ? translation
     : initialTranslation && translations.some((item) => item.id === initialTranslation)
       ? initialTranslation
-    : (translations[0]?.id || 'crampon');
+      : (translations[0]?.id || 'crampon'), [initialTranslation, translation, translations]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    let isCurrent = true;
+    startTransition(() => {
+      void getBooksForTranslationAction(selectedTranslation).then((result) => {
+        if (isCurrent && result.success && result.books) {
+          setAvailableBooks(result.books);
+        }
+      });
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isLoaded, selectedTranslation]);
+
+  const oldTestament = availableBooks.filter(book => book.testament === 'old');
+  const psalms = availableBooks.filter(book => book.position === 23);
+  const newTestament = availableBooks.filter(book => book.testament === 'new');
+
   const chapterHref = (bookSlug: string) =>
     `/bible/${bookSlug}/1?translation=${encodeURIComponent(selectedTranslation)}`;
+  const showOldTestament = oldTestament.length > 0 && (selectedSection === 'all' || selectedSection === 'old');
+  const showPsalms = psalms.length > 0 && selectedSection === 'psalms';
+  const showNewTestament = newTestament.length > 0 && (selectedSection === 'all' || selectedSection === 'new');
+  const showEmptySection =
+    (selectedSection === 'old' && oldTestament.length === 0) ||
+    (selectedSection === 'psalms' && psalms.length === 0) ||
+    (selectedSection === 'new' && newTestament.length === 0) ||
+    (selectedSection === 'all' && availableBooks.length === 0);
+
+  const handleTranslationChange = (newTranslation: string) => {
+    changeTranslation(newTranslation);
+    router.replace(`/bible?translation=${encodeURIComponent(newTranslation)}`, { scroll: false });
+  };
 
   return (
     <main className="min-h-screen">
@@ -70,7 +102,7 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
           <select
             id="translation-select"
             value={selectedTranslation}
-            onChange={(e) => changeTranslation(e.target.value)}
+            onChange={(e) => handleTranslationChange(e.target.value)}
             className="px-4 py-2 border border-border rounded-lg bg-background text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
             {translations.map((item) => (
@@ -79,6 +111,7 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
               </option>
             ))}
           </select>
+          {isPending && <span className="text-sm text-secondary">Chargement...</span>}
         </div>
 
         {/* Navigation rapide - Sticky */}
@@ -118,7 +151,7 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
         </div>
 
         {/* Ancien Testament */}
-        {(selectedSection === 'all' || selectedSection === 'old') && (
+        {showOldTestament && (
           <section id="ancien-testament" className="mb-12 scroll-mt-32">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-primary">Ancien Testament</h2>
@@ -151,7 +184,7 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
         )}
 
         {/* Psaumes */}
-        {selectedSection === 'psalms' && (
+        {showPsalms && (
           <section id="psaumes" className="mb-12 scroll-mt-32">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-primary">Psaumes</h2>
@@ -182,7 +215,7 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
         )}
 
         {/* Nouveau Testament */}
-        {(selectedSection === 'all' || selectedSection === 'new') && (
+        {showNewTestament && (
           <section id="nouveau-testament" className="scroll-mt-32">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-primary">Nouveau Testament</h2>
@@ -209,6 +242,10 @@ export function BiblePageClient({ books, translations, initialTranslation }: Bib
               ))}
             </div>
           </section>
+        )}
+
+        {showEmptySection && (
+          <p className="text-secondary">Aucun livre disponible pour cette section dans la traduction sélectionnée.</p>
         )}
       </div>
     </main>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getBooksAction, getOfficialBibleTranslationsAction } from '@/app/actions';
+import { getBooksForTranslationAction, getOfficialBibleTranslationsAction } from '@/app/actions';
 import { absoluteUrl, DEFAULT_OG_IMAGE } from '@/lib/seo';
 import { BiblePageClient } from './BiblePageClient';
 
@@ -26,17 +26,16 @@ export default async function BiblePage({
   searchParams: Promise<{ translation?: string }>;
 }) {
   const { translation } = await searchParams;
-  const [result, translationsResult] = await Promise.all([
-    getBooksAction(),
-    getOfficialBibleTranslationsAction(),
-  ]);
+  const translationsResult = await getOfficialBibleTranslationsAction();
+  const translations = translationsResult.translations || [];
+  const initialTranslation = translations.some((item) => item.id === translation)
+    ? translation
+    : (translations[0]?.id || 'crampon');
+  const result = await getBooksForTranslationAction(initialTranslation);
 
   if (!result.success || !result.books) {
     return <div className="text-center py-12 text-danger">Erreur lors du chargement des livres</div>;
   }
-
-  const translations = translationsResult.translations || [];
-  const initialTranslation = translations.some((item) => item.id === translation) ? translation : undefined;
 
   return <BiblePageClient books={result.books} translations={translations} initialTranslation={initialTranslation} />;
 }

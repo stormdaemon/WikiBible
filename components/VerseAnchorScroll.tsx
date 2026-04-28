@@ -16,7 +16,7 @@ export function VerseAnchorScroll() {
       const middle = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2);
 
       window.scrollTo({
-        top: middle,
+        top: Math.max(middle, 0),
         behavior: 'smooth'
       });
 
@@ -28,11 +28,12 @@ export function VerseAnchorScroll() {
     };
 
     // Fonction pour scroller vers l'ancre en centrant l'élément
-    const scrollToHash = () => {
+    const scrollToHash = (event?: Event) => {
+      const verseIdFromEvent = event instanceof CustomEvent ? event.detail?.verseId : undefined;
       const hash = window.location.hash;
-      if (!hash) return;
+      if (!hash && !verseIdFromEvent) return;
 
-      const verseId = hash.substring(1); // Enlever le #
+      const verseId = verseIdFromEvent || hash.substring(1); // Enlever le #
       const element = document.getElementById(verseId);
 
       if (element) {
@@ -65,9 +66,11 @@ export function VerseAnchorScroll() {
 
     // Écouter les changements de hash
     window.addEventListener('hashchange', scrollToHash);
+    window.addEventListener('wikibible:verse-anchor-scroll', scrollToHash);
 
     return () => {
       window.removeEventListener('hashchange', scrollToHash);
+      window.removeEventListener('wikibible:verse-anchor-scroll', scrollToHash);
     };
   }, []);
 

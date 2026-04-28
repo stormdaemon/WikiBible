@@ -97,8 +97,17 @@ export function BiblePathSelector({
           aria-label="Verset"
           defaultValue=""
           onChange={(event) => {
-            if (!event.target.value) return;
-            router.push(`${chapterHref()}#verse-${event.target.value}`);
+            const verse = event.target.value;
+            if (!verse) return;
+
+            router.push(`${chapterHref()}#verse-${verse}`, { scroll: false });
+            window.setTimeout(() => {
+              window.dispatchEvent(
+                new CustomEvent('wikibible:verse-anchor-scroll', {
+                  detail: { verseId: `verse-${verse}` },
+                })
+              );
+            }, 100);
           }}
           className="max-w-full px-3 py-2 rounded-lg border border-border bg-background text-primary focus:ring-2 focus:ring-accent focus:border-accent"
         >

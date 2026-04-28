@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
 import { InteractiveVerse } from '@/src/components/interactive-verse';
 import { ContributeVerseModal } from '@/components/ContributeVerseModal';
 import { EditVerseModal } from '@/components/EditVerseModal';
@@ -24,7 +23,6 @@ interface VerseCardProps {
   verseNumber: number;
   text: string;
   translation: string;
-  bookSlug?: string;
   bookId?: string;
   translationId?: string;
   isMissing?: boolean;
@@ -91,7 +89,6 @@ export function VerseCard({
   verseNumber,
   text,
   translation,
-  bookSlug,
   bookId,
   translationId,
   isMissing = false,
@@ -131,14 +128,6 @@ export function VerseCard({
 
   const hasWikiLinks = contributions?.wiki_links && contributions.wiki_links.length > 0;
   const firstWikiLink = hasWikiLinks ? contributions.wiki_links?.[0] : null;
-  const encodedTranslation = encodeURIComponent(translationId || '');
-  const bookHref = bookSlug
-    ? `/bible/${bookSlug}/1${translationId ? `?translation=${encodedTranslation}` : ''}`
-    : '/bible';
-  const chapterHref = bookSlug
-    ? `/bible/${bookSlug}/${chapter}${translationId ? `?translation=${encodedTranslation}` : ''}`
-    : '#';
-  const verseHref = `${chapterHref}#verse-${verseNumber}`;
 
   return (
     <>
@@ -213,41 +202,6 @@ export function VerseCard({
 
       {/* Contenu avec padding pour ne pas chevaucher les chevrons */}
       <div className={onSwitchTranslation ? "mx-10" : ""}>
-      {!isContributive && (
-        <nav aria-label={`Chemin du verset ${bookName} ${chapter}:${verseNumber}`} className="mb-3 text-xs text-slate-500">
-          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <li>
-              <Link href="/bible" className="hover:text-primary">
-                Bible
-              </Link>
-            </li>
-            <li className="text-slate-300">/</li>
-            <li>
-              <Link href={`/bible?translation=${encodedTranslation}`} className="hover:text-primary">
-                {translation}
-              </Link>
-            </li>
-            <li className="text-slate-300">/</li>
-            <li>
-              <Link href={bookHref} className="hover:text-primary">
-                {bookName}
-              </Link>
-            </li>
-            <li className="text-slate-300">/</li>
-            <li>
-              <Link href={chapterHref} className="hover:text-primary">
-                Chapitre {chapter}
-              </Link>
-            </li>
-            <li className="text-slate-300">/</li>
-            <li>
-              <Link href={verseHref} className="font-medium text-slate-700 hover:text-primary">
-                Verset {verseNumber}
-              </Link>
-            </li>
-          </ol>
-        </nav>
-      )}
       {/* Header avec référence et actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         {/* Référence du verset avec badges */}

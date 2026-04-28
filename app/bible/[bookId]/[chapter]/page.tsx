@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { getBookAction, getChapterAction, getOfficialBibleTranslationsAction } from '@/app/actions';
+import { getBookAction, getBooksAction, getChapterAction, getOfficialBibleTranslationsAction } from '@/app/actions';
 import Link from 'next/link';
+import { BiblePathSelector } from '@/components/BiblePathSelector';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
 import { VerseAnchorScroll } from '@/components/VerseAnchorScroll';
@@ -77,13 +78,17 @@ export default async function ChapterPage({
   const { translation = 'crampon' } = await searchParams;
   const chapter = parseInt(chapterStr);
 
-  const bookResult = await getBookAction(bookId);
+  const [bookResult, booksResult] = await Promise.all([
+    getBookAction(bookId),
+    getBooksAction(),
+  ]);
 
   if (!bookResult.success || !bookResult.book) {
     return <div className="text-center py-12 text-danger">Chapitre non trouvé</div>;
   }
 
   const book = bookResult.book;
+  const books = booksResult.books && booksResult.books.length > 0 ? booksResult.books : [book];
   const publicSupabase = createPublicClient();
   const translationsResult = await getOfficialBibleTranslationsAction();
   const officialTranslations = translationsResult.translations || [];
@@ -119,6 +124,7 @@ export default async function ChapterPage({
   }
 
   const verses = chapterResult.verses;
+  const verseNumbers = verses.map((verse) => verse.verse);
 
   // Vérifier l'authentification
   const supabase = await createClient();
@@ -157,26 +163,14 @@ export default async function ChapterPage({
 
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Breadcrumb */}
-        <nav className="flex mb-8 text-sm">
-          <ol className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <li><Link href="/bible" className="text-secondary hover:text-primary">Bible</Link></li>
-            <li><span className="text-slate-300">/</span></li>
-            <li>
-              <Link href={`/bible?translation=${encodedTranslation}`} className="text-secondary hover:text-primary">
-                {currentTranslationName}
-              </Link>
-            </li>
-            <li><span className="text-slate-300">/</span></li>
-            <li>
-              <Link href={`/bible/${bookId}/1?translation=${encodedTranslation}`} className="text-accent font-medium hover:text-primary">
-                {book.name}
-              </Link>
-            </li>
-            <li><span className="text-slate-300">/</span></li>
-            <li><span className="text-primary">Chapitre {chapter}</span></li>
-          </ol>
-        </nav>
+        <BiblePathSelector
+          books={books}
+          translations={translations}
+          currentBookSlug={bookId}
+          currentChapter={chapter}
+          currentTranslation={validTranslation}
+          verseNumbers={verseNumbers}
+        />
 
         {/* Title */}
         <h1 className="text-4xl font-serif text-primary mb-4">

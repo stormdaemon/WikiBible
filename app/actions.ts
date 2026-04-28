@@ -355,6 +355,7 @@ const OFFICIAL_BIBLE_TRANSLATION_FALLBACKS: BibleTranslationOption[] = [
   { id: 'jerusalem', name: 'Bible Jérusalem' },
   { id: 'septante', name: 'Bible Septante' },
   { id: 'grec', name: 'Bible Septante Grec' },
+  { id: 'hebreu', name: 'Bible Hébraïque' },
   { id: 'vulgate', name: 'Bible Vulgate' },
   { id: 'vulgate-fr', name: 'Bible Vulgate Française' },
 ];

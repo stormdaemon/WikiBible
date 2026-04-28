@@ -356,6 +356,7 @@ const OFFICIAL_BIBLE_TRANSLATION_FALLBACKS: BibleTranslationOption[] = [
   { id: 'septante', name: 'Bible Septante' },
   { id: 'grec', name: 'Bible Septante Grec' },
   { id: 'vulgate', name: 'Bible Vulgate' },
+  { id: 'vulgate-fr', name: 'Bible Vulgate Française' },
 ];
 
 export async function getBooksAction() {

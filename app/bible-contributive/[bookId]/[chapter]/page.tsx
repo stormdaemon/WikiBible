@@ -83,32 +83,8 @@ export default async function ContributiveChapterPage({
             chapter={chapter}
             totalChapters={book.chapters}
             basePath="/bible-contributive"
+            translation={translation}
           />
-        </div>
-
-        {/* Navigation précédent/suivant */}
-        <div className="flex justify-between items-center mb-8">
-          {chapter > 1 ? (
-            <Link
-              href={`/bible-contributive/${bookId}/${chapter - 1}`}
-              className="btn btn--secondary"
-            >
-              ← Chapitre précédent
-            </Link>
-          ) : (
-            <div></div>
-          )}
-
-          {chapter < book.chapters ? (
-            <Link
-              href={`/bible-contributive/${bookId}/${chapter + 1}`}
-              className="btn btn--primary"
-            >
-              Chapitre suivant →
-            </Link>
-          ) : (
-            <div></div>
-          )}
         </div>
 
         {/* Verses */}
@@ -132,6 +108,7 @@ export default async function ContributiveChapterPage({
             chapter={chapter}
             totalChapters={book.chapters}
             basePath="/bible-contributive"
+            translation={translation}
           />
         </div>
       </div>

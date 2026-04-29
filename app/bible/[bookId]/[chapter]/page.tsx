@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { getBookAction, getBooksAction, getChapterAction, getOfficialBibleTranslationsAction } from '@/app/actions';
-import Link from 'next/link';
 import { BiblePathSelector } from '@/components/BiblePathSelector';
 import { ChapterContentWrapper } from '@/components/ChapterContentWrapper';
 import { ChapterNavigation } from '@/components/ChapterNavigation';
@@ -185,32 +184,8 @@ export default async function ChapterPage({
             chapter={chapter}
             totalChapters={book.chapters}
             basePath="/bible"
+            translation={validTranslation}
           />
-        </div>
-
-        {/* Navigation précédent/suivant */}
-        <div className="flex justify-between items-center mb-8">
-          {chapter > 1 ? (
-            <Link
-              href={`/bible/${bookId}/${chapter - 1}`}
-              className="btn btn--secondary"
-            >
-              ← Chapitre précédent
-            </Link>
-          ) : (
-            <div></div>
-          )}
-
-          {chapter < book.chapters ? (
-            <Link
-              href={`/bible/${bookId}/${chapter + 1}`}
-              className="btn btn--primary"
-            >
-              Chapitre suivant →
-            </Link>
-          ) : (
-            <div></div>
-          )}
         </div>
 
         {/* Verses */}
@@ -236,6 +211,7 @@ export default async function ChapterPage({
             chapter={chapter}
             totalChapters={book.chapters}
             basePath="/bible"
+            translation={validTranslation}
           />
         </div>
       </div>

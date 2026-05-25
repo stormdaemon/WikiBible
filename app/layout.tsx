@@ -90,6 +90,7 @@ export const metadata: Metadata = {
 };
 
 import Header from '@/components/Header';
+import { ChristianEcosystemMenu } from '@/components/ChristianEcosystemMenu';
 import { RadioPlayer } from '@/components/RadioPlayer';
 import { createClient } from '@/utils/supabase/server';
 
@@ -144,6 +145,7 @@ export default async function RootLayout({
         <RadioPlayer />
         <Header user={user} />
         {children}
+        <ChristianEcosystemMenu />
       </body>
     </html>
   );

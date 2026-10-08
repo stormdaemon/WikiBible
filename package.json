@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "bash scripts/reset-webserver.sh",
+    "build": "bun run scripts/inspect-server-folders.mjs && next build",
+    "server:inspect": "bun run scripts/inspect-server-folders.mjs",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
